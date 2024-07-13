@@ -5,15 +5,13 @@ from eDiffMode import DiffMode
 from eWorkingMode import WorkingMode
 
 global output_dir
-output_dir="./gkmas"
+output_dir = './gkmas'
 
 download_asset = 1
 download_resource = 0
 
 #diffMode = DiffMode.Diff
 jDict = doDecrypt()
-
-download(jDict, output_dir,download_asset,download_resource)
-
+download(jDict, output_dir, download_asset, download_resource)
 unObfuscate(jDict)
 rename(jDict)

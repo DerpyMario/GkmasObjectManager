@@ -1,4 +1,3 @@
-// IDOLY PRIDE manifest protocol format
 syntax = "proto3";
 
 message Database {
