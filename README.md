@@ -9,3 +9,21 @@ download_resource = 1 for audio/text resource
 # Disclaimer
 Use at your own risk.
 You shall take responsibilities yourself for any possible consequences.
+
+# Asset Types
+| Prefix | Description   |
+|------  |---------------|
+| `spi`  |               |
+| `act`  | shader        |
+| `mdl`  | model         |
+| `img`  | image         |
+| `mot`  | motion        |
+| `sud`  | sound         |
+| `env`  | environment   |
+| `t`    |               |
+| `eff`  | effect        |
+| `tln`  | live?         |
+| `sun`  |               |
+| `mov`  | movie         |
+| `efp`  | dresscurtain  |
+| `m`    | sky?          |
