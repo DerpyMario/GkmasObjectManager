@@ -3,7 +3,7 @@ from MaskedHeaderStream import unObfuscate, rename
 from Downloader import download
 
 global output_dir
-output_dir = './gkmas'
+output_dir = "./gkmas"
 
 download_asset = 1
 download_resource = 0
