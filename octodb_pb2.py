@@ -339,8 +339,8 @@ _DATA = _descriptor.Descriptor(
             create_key=_descriptor._internal_create_key,
         ),
         _descriptor.FieldDescriptor(
-            name="dependencie",
-            full_name="Data.dependencie",
+            name="dependencies",
+            full_name="Data.dependencies",
             index=7,
             number=8,
             type=5,

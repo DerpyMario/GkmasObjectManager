@@ -16,7 +16,7 @@ message Data {
     uint32 crc = 5; 
     int32 priority = 6;
     repeated int32 tagid = 7;
-    repeated int32 dependencie = 8;
+    repeated int32 dependencies = 8;
     State state = 9;
     string md5 = 10;
     string objectName = 11;
