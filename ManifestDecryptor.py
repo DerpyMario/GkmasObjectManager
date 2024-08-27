@@ -1,29 +1,33 @@
 import hashlib
-import json
 import octodb_pb2
-import sqlite3
+import json
 import sys
 import re
+
 from rich.console import Console
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-from pathlib import Path
 from google.protobuf.json_format import MessageToJson
+from pathlib import Path
+
 
 # Currently known magic strings
-__KEY = "1nuv9td1bw1udefk"
-__IV = "LvAUtf+tnz"
+KEY = "1nuv9td1bw1udefk"
+IV = "LvAUtf+tnz"
+
 
 # Input cache file and output directory strings
 __inputPathString = "./EncryptedCache/octocacheevai"
 __outputPathString = "./DecryptedCache"
 
+
 # Initialization
 console = Console()
 
 
-def __decryptCache(key=__KEY, iv=__IV) -> octodb_pb2.Database:
-    """Decrypts a cache file (usually named 'octocacheevai') and deserializes it to a protobuf object
+def __decryptCache(key=KEY, iv=IV) -> octodb_pb2.Database:
+    """
+    Decrypts a cache file (usually named 'octocacheevai') and deserializes it to a protobuf object
 
     Args:
         key (string): A byte-string. Currently 16 characters long and appears to be alpha-numeric.
@@ -32,6 +36,7 @@ def __decryptCache(key=__KEY, iv=__IV) -> octodb_pb2.Database:
     Returns:
         octodb_pb2.Database: A protobuf object representing the deserialized cache.
     """
+
     key = bytes(key, "utf-8")
     iv = bytes(iv, "utf-8")
 
@@ -87,14 +92,13 @@ def __decryptCache(key=__KEY, iv=__IV) -> octodb_pb2.Database:
     return protoDatabase
 
 
-def __protoDb2Json(protoDb: octodb_pb2.Database) -> str:
-    """Converts a protobuf serialized object to JSON string then return the string."""
-    jsonDb = MessageToJson(protoDb)
-    return jsonDb
+def __protoDb2Json(protoDb: octodb_pb2.Database) -> dict:
+
+    return json.loads(MessageToJson(protoDb))
 
 
 def __writeJsonFile(d: dict, path: Path):
-    # Write the string to a json file
+
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(d, sort_keys=True, indent=4))
@@ -108,28 +112,8 @@ def __writeJsonFile(d: dict, path: Path):
         raise
 
 
-def __appendType(d: dict) -> dict:
-    for it in d["assetBundleList"]:
-        m = re.match(r"(.+?)_.*$", it["name"])  # Matches first _ in name
-        if m:
-            typeStr = m.group(1)
-        else:
-            typeStr = "others"
-        it["type"] = typeStr
-    for it in d["resourceList"]:
-        m = re.match(r"(.+?)_.*$", it["name"])  # Matches first _ in name
-        if m:
-            typeStr = m.group(1)
-        else:
-            typeStr = "others"
-        it["type"] = typeStr
-    return d
-
-
 def doDecrypt() -> dict:
     protoDb = __decryptCache()
-    jsonString = __protoDb2Json(protoDb)
-    jDict = json.loads(jsonString)
-    jDict = __appendType(jDict)
+    jDict = __protoDb2Json(protoDb)
     outputPath = Path(f"{__outputPathString}\manifest_v{protoDb.revision}.json")
     __writeJsonFile(jDict, outputPath)

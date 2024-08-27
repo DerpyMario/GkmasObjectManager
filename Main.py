@@ -9,6 +9,6 @@ download_asset = 1
 download_resource = 0
 
 jDict = doDecrypt()
-download(jDict, output_dir, download_asset, download_resource)
-unObfuscate(jDict)
-rename(jDict)
+# download(jDict, output_dir, download_asset, download_resource)
+# unObfuscate(jDict)
+# rename(jDict)
