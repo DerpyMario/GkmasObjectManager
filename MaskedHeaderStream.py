@@ -1,9 +1,9 @@
-from rich.console import Console
+from Utils import Logger
 from pathlib import Path
 
 __inputDirectory = "./gkmas/Assets/"
 __outputPath = "./gkmas/UnobfuscateAssets/"
-console = Console()
+logger = Logger()
 
 
 def unObfuscate(
@@ -20,8 +20,8 @@ def unObfuscate(
     try:
         filePaths = [path for path in contents if path.name in md5NameDict]
     except FileNotFoundError:
-        console.print(
-            f"[bold red]>>> [Error][/bold red] Folder '{__inputDirectory}' is not exists. Unobfuscation has been discarted."
+        logger.error(
+            f"Folder '{__inputDirectory}' does not exist. Unobfuscation has been discarded."
         )
         return
 
@@ -42,8 +42,8 @@ def unObfuscate(
             )
             exportFolder.mkdir(parents=True, exist_ok=True)
             exportFolder.joinpath(name + ".unity3d").write_bytes(buff)
-            console.print(
-                f"[bold withe]>>> [Info][/bold withe] ({count}/{allCount}) Assetbundle '{ name }.unity3d' is a non-obfuscated file."
+            logger.info(
+                f"({count}/{allCount}) Assetbundle '{ name }.unity3d' is a non-obfuscated file."
             )
             continue
         else:
@@ -58,22 +58,22 @@ def unObfuscate(
                 exportFolder.mkdir(parents=True, exist_ok=True)
                 flag = exportFolder.joinpath(name + ".unity3d").write_bytes(unityFS)
                 if flag:
-                    console.print(
-                        f"[bold green]>>> [Succeed][/bold green] ({count}/{allCount}) Assetbundle '{ name }.unity3d' has been successfully unobfuscated."
+                    logger.success(
+                        "({count}/{allCount}) Assetbundle '{ name }.unity3d' has been successfully unobfuscated."
                     )
                 else:
                     errorCount += 1
-                    console.print(
-                        f"[bold red]>>> [Error][/bold red] ({count}/{allCount}) Writes assetbundle '{ name }.unity3d' failed."
+                    logger.error(
+                        f"({count}/{allCount}) Writes assetbundle '{ name }.unity3d' failed."
                     )
             else:
                 errorCount += 1
-                console.print(
-                    f"[bold red]>>> [Error][/bold red] ({count}/{allCount}) Unobfuscates assetbundle '{ name }.unity3d' failed."
+                logger.error(
+                    f"({count}/{allCount}) Unobfuscates assetbundle '{ name }.unity3d' failed."
                 )
 
-    console.print(
-        f"[bold white]>>> [Info][/bold white] Unobfuscating operations all done, { errorCount } error(s) were occurred during the entire workflow."
+    logger.info(
+        f"Unobfuscating operations all done, {errorCount} error(s) were occurred during the entire workflow."
     )
 
 
@@ -85,8 +85,8 @@ def rename(jDict: dict):
     try:
         filePaths = [path for path in contents if path.name in md5NameDict]
     except FileNotFoundError:
-        console.print(
-            f"[bold red]>>> [Error][/bold red] Folder '{__inputDirectory}' is not exists. Rename action has been discarted."
+        logger.error(
+            f"Folder '{__inputDirectory}' does not exist. Rename action has been discarded."
         )
         return
     filePaths.sort(key=lambda x: x.name)
@@ -102,10 +102,10 @@ def rename(jDict: dict):
         )
         exportFolder.mkdir(parents=True, exist_ok=True)
         exportFolder.joinpath(name).write_bytes(path.read_bytes())
-        console.print(
-            f"[bold green]>>> [Succeed][/bold green] ({count}/{allCount}) Resource '{ name }' has been successfully renamed."
+        logger.success(
+            f"({count}/{allCount}) Resource '{ name }' has been successfully renamed."
         )
-    console.print(f"[bold white]>>> [Info][/bold white] Rename operations all done.")
+    logger.info("Rename operations all done.")
 
 
 def __stringToMaskBytes(
