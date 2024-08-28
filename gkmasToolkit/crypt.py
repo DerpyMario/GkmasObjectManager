@@ -2,12 +2,10 @@ from hashlib import md5
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
-from .utils import *
 
+class AESDecryptor:
 
-class GkmasManifestDecryptor:
-
-    def __init__(self, key: str = GKMAS_OCTOCACHE_KEY, iv: str = GKMAS_OCTOCACHE_IV):
+    def __init__(self, key: str, iv: str):
 
         key = bytes(key, "utf-8")
         iv = bytes(iv, "utf-8")
@@ -17,6 +15,7 @@ class GkmasManifestDecryptor:
 
     def decrypt(self, ciphertext: bytes) -> bytes:
 
+        # This ensures that ciphertext is 16-byte aligned;
         # for some reason there's a single extra 0x01 byte preceding ciphertext
         clen = len(ciphertext) // 16 * 16
         ciphertext = ciphertext[-clen:]
@@ -24,4 +23,4 @@ class GkmasManifestDecryptor:
         plaintext = self.cipher.decrypt(ciphertext)
         plaintext = unpad(plaintext, block_size=16, style="pkcs7")
 
-        return plaintext[16:]  # skip md5 hash
+        return plaintext
