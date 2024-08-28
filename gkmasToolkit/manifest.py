@@ -1,19 +1,12 @@
 import hashlib
 import octodb_pb2
 import json
-import sys
-import re
 
-from Utils import Logger
+from utils import Logger
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 from google.protobuf.json_format import MessageToJson
 from pathlib import Path
-
-
-# Currently known magic strings
-KEY = "1nuv9td1bw1udefk"
-IV = "LvAUtf+tnz"
 
 
 # Input cache file and output directory strings

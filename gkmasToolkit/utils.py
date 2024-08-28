@@ -1,4 +1,11 @@
+import sys
+
 from rich.console import Console
+
+
+# macro equivalents
+GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
+GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 
 
 class Logger(Console):
