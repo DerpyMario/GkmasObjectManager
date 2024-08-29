@@ -3,8 +3,13 @@ from google.protobuf.json_format import MessageToJson
 from pathlib import Path
 
 from .crypt import AESDecryptor
-from .utils import GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV
+from .utils import GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV, Logger
 from .octodb_pb2 import Database
+
+
+# The logger would better be a global variable in the
+# modular __init__.py, but Python won't allow me to
+logger = Logger()
 
 
 class GkmasManifest:
