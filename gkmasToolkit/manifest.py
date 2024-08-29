@@ -22,13 +22,20 @@ class GkmasManifest:
         iv: str = GKMAS_OCTOCACHE_IV,
     ):
 
-        decryptor = AESDecryptor(key, iv)
-        ciphertext = Path(path).read_bytes()
-        plaintext = decryptor.decrypt(ciphertext)
-        self.raw = plaintext[16:]  # trim md5 hash
-
         protodb = Database()
-        protodb.ParseFromString(self.raw)
+        ciphertext = Path(path).read_bytes()
+
+        try:
+            self.raw = ciphertext
+            protodb.ParseFromString(self.raw)
+            logger.info("ProtoDB is not encrypted.")
+        except:
+            decryptor = AESDecryptor(key, iv)
+            plaintext = decryptor.decrypt(ciphertext)
+            self.raw = plaintext[16:]  # trim md5 hash
+            protodb.ParseFromString(self.raw)
+            logger.info("ProtoDB has been decrypted.")
+
         self.revision = protodb.revision
         logger.info(f"Manifest revision: {self.revision}")
 
