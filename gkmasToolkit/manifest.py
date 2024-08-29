@@ -40,9 +40,9 @@ class GkmasManifest:
         # dispatcher
 
         path = Path(path)
-        path.mkdir(parents=True, exist_ok=True)
 
-        if path.is_dir():
+        if path.suffix == "":  # used to be path.is_dir()
+            path.mkdir(parents=True, exist_ok=True)
             self._export_protodb(path / f"manifest_v{self.revision}")
             self._export_json(path / f"manifest_v{self.revision}.json")
             self._export_csv(path / f"manifest_v{self.revision}.csv")
@@ -60,44 +60,43 @@ class GkmasManifest:
             path.write_bytes(self.raw)
             logger.success(f"ProtoDB has been written into {path}.")
         except:
-            logger.error(f"Failed to write ProtoDB into {path}.", fatal=True)
+            logger.error(f"Failed to write ProtoDB into {path}.")
 
     def _export_json(self, path: Path):
         try:
             path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
             logger.success(f"JSON has been written into {path}.")
         except:
-            logger.error(f"Failed to write JSON into {path}.", fatal=True)
+            logger.error(f"Failed to write JSON into {path}.")
 
     def _export_csv(self, path: Path):
         dfa = DataFrame(
             self.jdict["assetBundleList"],
             columns=[
+                "objectName",
+                "md5",
                 "name",
                 "size",
-                "crc",
                 "state",
-                "md5",
-                "objectName",
-                "uploadVersionId",
+                "crc",
             ],
         )
         dfr = DataFrame(
             self.jdict["resourceList"],
             columns=[
+                "objectName",
+                "md5",
                 "name",
                 "size",
                 "state",
-                "md5",
-                "objectName",
-                "uploadVersionId",
             ],
         )
         dfa.sort_values("name", inplace=True)
         dfr.sort_values("name", inplace=True)
         try:
-            dfa.to_csv(path.parent / path.stem + "_ab.csv", index=False)
-            dfr.to_csv(path.parent / path.stem + "_res.csv", index=False)
+            spath = str(path.parent) + "/" + str(path.stem)  # string form
+            dfa.to_csv(spath + "_ab.csv", index=False)
+            dfr.to_csv(spath + "_res.csv", index=False)
             logger.success(f"CSV has been written into {path}.")
         except:
-            logger.error(f"Failed to write CSV into {path}.", fatal=True)
+            logger.error(f"Failed to write CSV into {path}.")
