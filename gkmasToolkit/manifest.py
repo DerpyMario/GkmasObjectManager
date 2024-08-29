@@ -1,5 +1,6 @@
 import json
 from google.protobuf.json_format import MessageToJson
+from pandas import DataFrame
 from pathlib import Path
 
 from .crypt import AESDecryptor
@@ -32,6 +33,8 @@ class GkmasManifest:
         logger.info(f"Manifest revision: {self.revision}")
 
         self.jdict = json.loads(MessageToJson(protodb))
+
+    # ------------ Export ------------
 
     def export(self, path: str):
         # dispatcher
@@ -67,4 +70,34 @@ class GkmasManifest:
             logger.error(f"Failed to write JSON into {path}.", fatal=True)
 
     def _export_csv(self, path: Path):
-        raise NotImplementedError("CSV export is not yet implemented.")
+        dfa = DataFrame(
+            self.jdict["assetBundleList"],
+            columns=[
+                "name",
+                "size",
+                "crc",
+                "state",
+                "md5",
+                "objectName",
+                "uploadVersionId",
+            ],
+        )
+        dfr = DataFrame(
+            self.jdict["resourceList"],
+            columns=[
+                "name",
+                "size",
+                "state",
+                "md5",
+                "objectName",
+                "uploadVersionId",
+            ],
+        )
+        dfa.sort_values("name", inplace=True)
+        dfr.sort_values("name", inplace=True)
+        try:
+            dfa.to_csv(path.parent / path.stem + "_ab.csv", index=False)
+            dfr.to_csv(path.parent / path.stem + "_res.csv", index=False)
+            logger.success(f"CSV has been written into {path}.")
+        except:
+            logger.error(f"Failed to write CSV into {path}.", fatal=True)
