@@ -5,12 +5,15 @@ from .utils import (
     Logger,
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
+    DEFAULT_DOWNLOAD_PATH,
 )
 
+import re
 import json
 from google.protobuf.json_format import MessageToJson
 from pandas import DataFrame
 from pathlib import Path
+from typing import Union
 
 
 # The logger would better be a global variable in the
@@ -47,8 +50,47 @@ class GkmasManifest:
         self.jdict = json.loads(MessageToJson(protodb))
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
         self.resources = [GkmasResource(res) for res in self.jdict["resourceList"]]
+        self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
+        self.__name2blob.update({res.name: res for res in self.resources})
         logger.info(f"Number of asset bundles: {len(self.abs)}")
         logger.info(f"Number of resources: {len(self.resources)}")
+
+    # ------------ Download ------------
+
+    def download(self, files: Union[str, list], path: str = DEFAULT_DOWNLOAD_PATH):
+        # dispatcher
+
+        if isinstance(files, str):
+            files = [files]
+
+        for file in files:
+            if file not in self.__name2blob:
+                logger.warning(f"File '{file}' not found in the manifest.")
+                continue
+            self.__name2blob[file].download(path)
+
+    def download_all(
+        self,
+        criteria: str,
+        path: str = DEFAULT_DOWNLOAD_PATH,
+        all_assets: bool = False,  # equivalent to criteria=".*" and
+        all_resources: bool = False,  # overrides/mutually exclusive with criteria
+    ):
+        # dispatcher
+
+        if all_assets:
+            for ab in self.abs:
+                ab.download(path)
+
+        if all_resources:
+            for res in self.resources:
+                res.download(path)
+
+        if all_assets or all_resources:
+            return
+
+        for file in filter(re.compile(criteria).match, self.__name2blob):
+            self.__name2blob[file].download(path)
 
     # ------------ Export ------------
 

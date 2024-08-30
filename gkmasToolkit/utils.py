@@ -7,6 +7,7 @@ GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
 GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
 UNITY_SIGNATURE = b"UnityFS"
+DEFAULT_DOWNLOAD_PATH = "blob/"
 
 
 class Logger(Console):
