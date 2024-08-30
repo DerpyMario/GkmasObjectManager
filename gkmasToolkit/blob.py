@@ -1,6 +1,8 @@
 from .utils import Logger, GKMAS_OBJECT_SERVER
+from .crypt import GkmasDeobfuscator
 
 import requests
+import hashlib
 from pathlib import Path
 
 
@@ -14,12 +16,12 @@ class GkmasResource:
         self.id = info["id"]
         self.name = info["name"]
         self.size = info["size"]
-        self.state = info["state"]
+        self.state = info["state"]  # unused
         self.md5 = info["md5"]
         self.objectName = info["objectName"]
 
     def __repr__(self):
-        return f"<GkmasResource {self.name}>"
+        return f"<GkmasResource [{self.id:04}] '{self.name}'>"
 
     def download(self, path: str):
 
@@ -31,16 +33,27 @@ class GkmasResource:
             path = path / self.name
 
         if path.exists():
-            logger.info(f"'{self.name}' exists, skipping download.")
+            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
             return
 
         url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
         response = requests.get(url)
-        if response.status_code == 200:
-            Path(path).write_bytes(response.content)
-            logger.success(f"'{self.name}' has been downloaded.")
-        else:
-            logger.error(f"'{self.name}' download failed.")
+
+        if response.status_code != 200:
+            logger.error(f"[{self.id:04}] '{self.name}' download failed.")
+            return
+
+        if len(response.content) != self.size:
+            logger.error(f"[{self.id:04}] '{self.name}' has invalid size.")
+            return
+
+        md5_hash = hashlib.md5(response.content).hexdigest()
+        if md5_hash != self.md5:
+            logger.error(f"[{self.id:04}] '{self.name}' has invalid MD5 hash.")
+            return
+
+        Path(path).write_bytes(response.content)
+        logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
 
 
 class GkmasAssetBundle(GkmasResource):
@@ -57,4 +70,4 @@ class GkmasAssetBundle(GkmasResource):
     def download(self, path: str):
 
         super().download(path)
-        _unobfuscate(path, self.crc)
+        content = Path(path) / self.name
