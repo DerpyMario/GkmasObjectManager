@@ -25,6 +25,17 @@ class GkmasResource:
 
     def download(self, path: str):
 
+        path = self._download_path(path)
+        if path.exists():
+            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
+            return
+
+        plain = self._download_bytes()
+        path.write_bytes(plain)
+        logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
+
+    def _download_path(self, path: str) -> Path:
+
         # don't expect the client to import pathlib in advance
         path = Path(path)
 
@@ -32,28 +43,27 @@ class GkmasResource:
             path.mkdir(parents=True, exist_ok=True)
             path = path / self.name
 
-        if path.exists():
-            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
-            return
+        return path
+
+    def _download_bytes(self) -> bytes:
 
         url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
         response = requests.get(url)
 
         if response.status_code != 200:
             logger.error(f"[{self.id:04}] '{self.name}' download failed.")
-            return
+            return b""
 
         if len(response.content) != self.size:
             logger.error(f"[{self.id:04}] '{self.name}' has invalid size.")
-            return
+            return b""
 
         md5_hash = hashlib.md5(response.content).hexdigest()
         if md5_hash != self.md5:
             logger.error(f"[{self.id:04}] '{self.name}' has invalid MD5 hash.")
-            return
+            return b""
 
-        Path(path).write_bytes(response.content)
-        logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
+        return response.content
 
 
 class GkmasAssetBundle(GkmasResource):
@@ -65,9 +75,17 @@ class GkmasAssetBundle(GkmasResource):
         self.crc = info["crc"]
 
     def __repr__(self):
-        return f"<GkmasAssetBundle {self.name}>"
+        return f"<GkmasAssetBundle '{self.name}'>"
 
     def download(self, path: str):
 
-        super().download(path)
-        content = Path(path) / self.name
+        path = self._download_path(path)
+        if path.exists():
+            logger.info(f"'{self.name}' already exists.")
+            return
+
+        cipher = self._download_bytes()
+        deobfuscator = GkmasDeobfuscator(self.md5)
+        plain = deobfuscator.decrypt(cipher)
+        path.write_bytes(plain)
+        logger.success(f"'{self.name}' has been downloaded.")
