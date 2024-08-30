@@ -26,16 +26,16 @@ class GkmasResource:
 
     def download(self, path: str):
 
-        path = self._download_path(path)
+        path = self.__download_path(path)
         if path.exists():
             logger.info(f"{self._idname} already exists.")
             return
 
-        plain = self._download_bytes()
+        plain = self.__download_bytes()
         path.write_bytes(plain)
         logger.success(f"{self._idname} has been downloaded.")
 
-    def _download_path(self, path: str) -> Path:
+    def __download_path(self, path: str) -> Path:
 
         # don't expect the client to import pathlib in advance
         path = Path(path)
@@ -46,7 +46,7 @@ class GkmasResource:
 
         return path
 
-    def _download_bytes(self) -> bytes:
+    def __download_bytes(self) -> bytes:
 
         url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
         response = requests.get(url)
@@ -79,12 +79,12 @@ class GkmasAssetBundle(GkmasResource):
 
     def download(self, path: str):
 
-        path = self._download_path(path)
+        path = self.__download_path(path)
         if path.exists():
             logger.info(f"{self._idname} already exists.")
             return
 
-        cipher = self._download_bytes()
+        cipher = self.__download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
             path.write_bytes(cipher)

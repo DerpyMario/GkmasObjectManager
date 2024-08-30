@@ -53,33 +53,33 @@ class GkmasManifest:
 
         if path.suffix == "":  # used to be path.is_dir()
             path.mkdir(parents=True, exist_ok=True)
-            self._export_protodb(path / f"manifest_v{self.revision}")
-            self._export_json(path / f"manifest_v{self.revision}.json")
-            self._export_csv(path / f"manifest_v{self.revision}.csv")
+            self.__export_protodb(path / f"manifest_v{self.revision}")
+            self.__export_json(path / f"manifest_v{self.revision}.json")
+            self.__export_csv(path / f"manifest_v{self.revision}.csv")
 
         else:
             if path.suffix == ".json":
-                self._export_json(path)
+                self.__export_json(path)
             elif path.suffix == ".csv":
-                self._export_csv(path)
+                self.__export_csv(path)
             else:
-                self._export_protodb(path)
+                self.__export_protodb(path)
 
-    def _export_protodb(self, path: Path):
+    def __export_protodb(self, path: Path):
         try:
             path.write_bytes(self.raw)
             logger.success(f"ProtoDB has been written into {path}.")
         except:
             logger.error(f"Failed to write ProtoDB into {path}.")
 
-    def _export_json(self, path: Path):
+    def __export_json(self, path: Path):
         try:
             path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
             logger.success(f"JSON has been written into {path}.")
         except:
             logger.error(f"Failed to write JSON into {path}.")
 
-    def _export_csv(self, path: Path):
+    def __export_csv(self, path: Path):
         dfa = DataFrame(
             self.jdict["assetBundleList"],
             columns=[
