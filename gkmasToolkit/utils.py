@@ -10,6 +10,7 @@ CSV_COLUMNS_ASSETBUNDLE = ["objectName", "md5", "name", "size", "state", "crc"]
 CSV_COLUMNS_RESOURCE = ["objectName", "md5", "name", "size", "state"]
 UNITY_SIGNATURE = b"UnityFS"
 DEFAULT_DOWNLOAD_PATH = "blob/"
+MAX_SUBDIR_DEPTH = 3
 
 
 class Logger(Console):

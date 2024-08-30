@@ -46,11 +46,14 @@ class GkmasResource:
         path = Path(path)
 
         if path.suffix == "":  # is directory
-            path.mkdir(parents=True, exist_ok=True)
-            path = path / self.name
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
+            subdir = "/".join(
+                ".".join(self.name.split(".")[:-1])
+                .split("-")[0]
+                .split("_")[:MAX_SUBDIR_DEPTH]
+            )
+            path = path / subdir / self.name  # auto organize into subdirectories
 
+        path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
     def _download_bytes(self) -> bytes:

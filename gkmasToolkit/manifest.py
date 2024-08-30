@@ -77,7 +77,7 @@ class GkmasManifest:
 
     def download_all(
         self,
-        criteria: str,
+        criteria: Union[str, list] = ".*",
         path: str = DEFAULT_DOWNLOAD_PATH,
         all_assets: bool = False,  # equivalent to criteria=".*" and
         all_resources: bool = False,  # overrides/mutually exclusive with criteria
@@ -95,8 +95,12 @@ class GkmasManifest:
         if all_assets or all_resources:
             return
 
-        for file in filter(re.compile(criteria).match, self.__name2blob):
-            self.__name2blob[file].download(path)
+        if isinstance(criteria, str):
+            criteria = [criteria]
+
+        for criterion in criteria:
+            for file in filter(re.compile(criterion).match, self.__name2blob):
+                self.__name2blob[file].download(path)
 
     # ------------ Export ------------
 
