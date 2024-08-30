@@ -1,4 +1,4 @@
-from .utils import Logger, GKMAS_OBJECT_SERVER
+from .utils import Logger, GKMAS_OBJECT_SERVER, UNITY_SIGNATURE
 from .crypt import GkmasDeobfuscator
 
 import requests
@@ -58,8 +58,7 @@ class GkmasResource:
             logger.error(f"[{self.id:04}] '{self.name}' has invalid size.")
             return b""
 
-        md5_hash = hashlib.md5(response.content).hexdigest()
-        if md5_hash != self.md5:
+        if hashlib.md5(response.content).hexdigest() != self.md5:
             logger.error(f"[{self.id:04}] '{self.name}' has invalid MD5 hash.")
             return b""
 
@@ -72,20 +71,35 @@ class GkmasAssetBundle(GkmasResource):
 
         super().__init__(info)
         self.name = info["name"] + ".unity3d"
-        self.crc = info["crc"]
+        self.crc = info["crc"]  # unused (for now)
 
     def __repr__(self):
-        return f"<GkmasAssetBundle '{self.name}'>"
+        return f"<GkmasAssetBundle [{self.id:04}] '{self.name}'>"
 
     def download(self, path: str):
 
         path = self._download_path(path)
         if path.exists():
-            logger.info(f"'{self.name}' already exists.")
+            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
             return
 
         cipher = self._download_bytes()
-        deobfuscator = GkmasDeobfuscator(self.md5)
-        plain = deobfuscator.decrypt(cipher)
-        path.write_bytes(plain)
-        logger.success(f"'{self.name}' has been downloaded.")
+
+        if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
+            path.write_bytes(cipher)
+            logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
+        else:
+            deobfuscator = GkmasDeobfuscator(
+                self.name.replace(".unity3d", "")
+            )  # rip extension
+            plain = deobfuscator.decrypt(cipher)
+            if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
+                path.write_bytes(plain)
+                logger.success(
+                    f"[{self.id:04}] '{self.name}' has been downloaded and deobfuscated."
+                )
+            else:
+                path.write_bytes(cipher)
+                logger.error(
+                    f"[{self.id:04}] '{self.name}' has been downloaded but left obfuscated."
+                )

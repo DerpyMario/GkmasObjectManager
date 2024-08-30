@@ -31,6 +31,7 @@ class GkmasDeobfuscator:
     def __init__(
         self, key: str, offset: int = 0, stream_pos: int = 0, header_len: int = 256
     ):
+        # Algorithm courtesy of github.com/MalitsPlus
         # 'maskString' is now 'key'
         # 'maskBytes' is now 'mask'
 
@@ -39,43 +40,29 @@ class GkmasDeobfuscator:
         self.header_len = header_len
         self.mask = self._makemask(key)
 
-    def _makemask(key: str) -> bytes:
-        # Algorithm courtesy of github.com/MalitsPlus
+    def _makemask(self, key: str) -> bytes:
 
         masksize = len(key) << 1
         mask = bytearray(masksize)
+        key = bytes(key, "utf-8")
 
         if len(key) >= 1:
             i = 0
-            j = 0
-            k = masksize - 1
-            while j != len(key):
-                charJ = key[j]
-                charJ = int.from_bytes(
-                    charJ.encode("ascii"), byteorder="little", signed=False
-                )  # Must be casted as Int in python
-                j += 1
-                mask[i] = charJ
+            j = masksize - 1
+            for char in key:
+                mask[i] = char
+                mask[j] = ~char & 0xFF
                 i += 2
-                charJ = ~charJ & 0xFF  # Must AND 0xFF to get an unsigned integer
-                mask[k] = charJ
-                k -= 2
+                j -= 2
 
         if masksize >= 1:
-            l = masksize
-            m = masksize
-            n = 0x9B
+            x = 0x9B
             ptr = 0
-            while m:
-                v16 = mask[ptr]
+            for _ in range(masksize):
+                x = (((x & 1) << 7) | (x >> 1)) ^ mask[ptr]
                 ptr += 1
-                m -= 1
-                n = (((n & 1) << 7) | (n >> 1)) ^ v16
-            b = 0
-            while l:
-                l -= 1
-                mask[b] ^= n
-                b += 1
+            for i in range(masksize):
+                mask[i] ^= x
 
         return bytes(mask)
 
