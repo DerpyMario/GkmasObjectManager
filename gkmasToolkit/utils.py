@@ -21,9 +21,9 @@ class Logger(Console):
     def success(self, message: str):
         self.print(f"[bold green]>>> [Success][/bold green] {message}")
 
-    def error(self, message: str, fatal: bool = False):
-        if fatal:
-            self.print(f"[bold red]>>> [Error][/bold red] {message}\n{sys.exc_info()}")
-            raise
-        else:
-            self.print(f"[bold red]>>> [Error][/bold red] {message}")
+    def warning(self, message: str):
+        self.print(f"[bold yellow]>>> [Warning][/bold yellow] {message}")
+
+    def error(self, message: str):
+        self.print(f"[bold red]>>> [Error][/bold red] {message}\n{sys.exc_info()}")
+        raise

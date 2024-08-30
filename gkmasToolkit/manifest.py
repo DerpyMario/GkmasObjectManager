@@ -43,6 +43,8 @@ class GkmasManifest:
         self.jdict = json.loads(MessageToJson(protodb))
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
         self.resources = [GkmasResource(res) for res in self.jdict["resourceList"]]
+        logger.info(f"Number of asset bundles: {len(self.abs)}")
+        logger.info(f"Number of resources: {len(self.resources)}")
 
     # ------------ Export ------------
 
@@ -70,14 +72,14 @@ class GkmasManifest:
             path.write_bytes(self.raw)
             logger.success(f"ProtoDB has been written into {path}.")
         except:
-            logger.error(f"Failed to write ProtoDB into {path}.")
+            logger.warning(f"Failed to write ProtoDB into {path}.")
 
     def __export_json(self, path: Path):
         try:
             path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
             logger.success(f"JSON has been written into {path}.")
         except:
-            logger.error(f"Failed to write JSON into {path}.")
+            logger.warning(f"Failed to write JSON into {path}.")
 
     def __export_csv(self, path: Path):
         dfa = DataFrame(
@@ -109,4 +111,4 @@ class GkmasManifest:
             dfr.to_csv(spath + "_res.csv", index=False)
             logger.success(f"CSV has been written into {path}.")
         except:
-            logger.error(f"Failed to write CSV into {path}.")
+            logger.warning(f"Failed to write CSV into {path}.")

@@ -28,12 +28,12 @@ class GkmasResource:
 
         path = self.__download_path(path)
         if path.exists():
-            logger.info(f"{self._idname} already exists.")
+            logger.warning(f"{self._idname} already exists.")
             return
 
         plain = self.__download_bytes()
         path.write_bytes(plain)
-        logger.success(f"{self._idname} has been downloaded.")
+        logger.success(f"{self._idname} downloaded.")
 
     def __download_path(self, path: str) -> Path:
 
@@ -50,6 +50,10 @@ class GkmasResource:
 
         url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
         response = requests.get(url)
+
+        # We're being strict here by aborting the download process
+        # if any of the sanity checks fail, in order to avoid corrupted output.
+        # The client can always retry (just ignore the "file already exists" warnings).
 
         if response.status_code != 200:
             logger.error(f"{self._idname} download failed.")
@@ -81,20 +85,23 @@ class GkmasAssetBundle(GkmasResource):
 
         path = self.__download_path(path)
         if path.exists():
-            logger.info(f"{self._idname} already exists.")
+            logger.warning(f"{self._idname} already exists.")
             return
 
         cipher = self.__download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
             path.write_bytes(cipher)
-            logger.success(f"{self._idname} has been downloaded.")
+            logger.success(f"{self._idname} downloaded.")
         else:
             deobfuscator = GkmasDeobfuscator(self.name)
             plain = deobfuscator.decrypt(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
                 path.write_bytes(plain)
-                logger.success(f"{self._idname} has been downloaded and deobfuscated.")
+                logger.success(f"{self._idname} downloaded and deobfuscated.")
             else:
                 path.write_bytes(cipher)
-                logger.error(f"{self._idname} has been downloaded but left obfuscated.")
+                logger.warning(f"{self._idname} downloaded but left obfuscated.")
+                # Things can happen...
+                # So unlike __download_bytes() in the parent class,
+                # here we don't raise an error and abort.
