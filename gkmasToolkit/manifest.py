@@ -1,11 +1,12 @@
+from .utils import Logger, GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV
+from .crypt import AESDecryptor
+from .octodb_pb2 import Database
+from .blob import GkmasAssetBundle, GkmasResource
+
 import json
 from google.protobuf.json_format import MessageToJson
 from pandas import DataFrame
 from pathlib import Path
-
-from .crypt import AESDecryptor
-from .utils import GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV, Logger
-from .octodb_pb2 import Database
 
 
 # The logger would better be a global variable in the
@@ -40,6 +41,8 @@ class GkmasManifest:
         logger.info(f"Manifest revision: {self.revision}")
 
         self.jdict = json.loads(MessageToJson(protodb))
+        self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
+        self.resources = [GkmasResource(res) for res in self.jdict["resourceList"]]
 
     # ------------ Export ------------
 
