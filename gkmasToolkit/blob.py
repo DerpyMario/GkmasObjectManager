@@ -19,23 +19,23 @@ class GkmasResource:
         self.state = info["state"]  # unused
         self.md5 = info["md5"]
         self.objectName = info["objectName"]
-        self._idname = f"[{self.id:04}] '{self.name}'"
+        self.__idname = f"[{self.id:04}] '{self.name}'"
 
     def __repr__(self):
-        return f"<GkmasResource {self._idname}>"
+        return f"<GkmasResource {self.__idname}>"
 
     def download(self, path: str):
 
-        path = self.__download_path(path)
+        path = self._download_path(path)
         if path.exists():
-            logger.warning(f"{self._idname} already exists.")
+            logger.warning(f"{self.__idname} already exists.")
             return
 
-        plain = self.__download_bytes()
+        plain = self._download_bytes()
         path.write_bytes(plain)
-        logger.success(f"{self._idname} downloaded.")
+        logger.success(f"{self.__idname} downloaded.")
 
-    def __download_path(self, path: str) -> Path:
+    def _download_path(self, path: str) -> Path:
 
         # don't expect the client to import pathlib in advance
         path = Path(path)
@@ -46,7 +46,7 @@ class GkmasResource:
 
         return path
 
-    def __download_bytes(self) -> bytes:
+    def _download_bytes(self) -> bytes:
 
         url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
         response = requests.get(url)
@@ -56,15 +56,15 @@ class GkmasResource:
         # The client can always retry (just ignore the "file already exists" warnings).
 
         if response.status_code != 200:
-            logger.error(f"{self._idname} download failed.")
+            logger.error(f"{self.__idname} download failed.")
             return b""
 
         if len(response.content) != self.size:
-            logger.error(f"{self._idname} has invalid size.")
+            logger.error(f"{self.__idname} has invalid size.")
             return b""
 
         if hashlib.md5(response.content).hexdigest() != self.md5:
-            logger.error(f"{self._idname} has invalid MD5 hash.")
+            logger.error(f"{self.__idname} has invalid MD5 hash.")
             return b""
 
         return response.content
@@ -75,33 +75,34 @@ class GkmasAssetBundle(GkmasResource):
     def __init__(self, info: dict):
 
         super().__init__(info)
+        self.name = info["name"] + ".unity3d"
         self.crc = info["crc"]  # unused (for now)
-        self._idname = f"[{self.id:04}] '{self.name}.unity3d'"
+        self.__idname = f"[{self.id:04}] '{self.name}'"
 
     def __repr__(self):
-        return f"<GkmasAssetBundle {self._idname}>"
+        return f"<GkmasAssetBundle {self.__idname}>"
 
     def download(self, path: str):
 
-        path = self.__download_path(path)
+        path = self._download_path(path)
         if path.exists():
-            logger.warning(f"{self._idname} already exists.")
+            logger.warning(f"{self.__idname} already exists.")
             return
 
-        cipher = self.__download_bytes()
+        cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
             path.write_bytes(cipher)
-            logger.success(f"{self._idname} downloaded.")
+            logger.success(f"{self.__idname} downloaded.")
         else:
-            deobfuscator = GkmasDeobfuscator(self.name)
+            deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.decrypt(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
                 path.write_bytes(plain)
-                logger.success(f"{self._idname} downloaded and deobfuscated.")
+                logger.success(f"{self.__idname} downloaded and deobfuscated.")
             else:
                 path.write_bytes(cipher)
-                logger.warning(f"{self._idname} downloaded but left obfuscated.")
+                logger.warning(f"{self.__idname} downloaded but left obfuscated.")
                 # Things can happen...
-                # So unlike __download_bytes() in the parent class,
+                # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.
