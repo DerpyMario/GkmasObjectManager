@@ -19,20 +19,21 @@ class GkmasResource:
         self.state = info["state"]  # unused
         self.md5 = info["md5"]
         self.objectName = info["objectName"]
+        self._idname = f"[{self.id:04}] '{self.name}'"
 
     def __repr__(self):
-        return f"<GkmasResource [{self.id:04}] '{self.name}'>"
+        return f"<GkmasResource {self._idname}>"
 
     def download(self, path: str):
 
         path = self._download_path(path)
         if path.exists():
-            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
+            logger.info(f"{self._idname} already exists.")
             return
 
         plain = self._download_bytes()
         path.write_bytes(plain)
-        logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
+        logger.success(f"{self._idname} has been downloaded.")
 
     def _download_path(self, path: str) -> Path:
 
@@ -51,15 +52,15 @@ class GkmasResource:
         response = requests.get(url)
 
         if response.status_code != 200:
-            logger.error(f"[{self.id:04}] '{self.name}' download failed.")
+            logger.error(f"{self._idname} download failed.")
             return b""
 
         if len(response.content) != self.size:
-            logger.error(f"[{self.id:04}] '{self.name}' has invalid size.")
+            logger.error(f"{self._idname} has invalid size.")
             return b""
 
         if hashlib.md5(response.content).hexdigest() != self.md5:
-            logger.error(f"[{self.id:04}] '{self.name}' has invalid MD5 hash.")
+            logger.error(f"{self._idname} has invalid MD5 hash.")
             return b""
 
         return response.content
@@ -70,36 +71,30 @@ class GkmasAssetBundle(GkmasResource):
     def __init__(self, info: dict):
 
         super().__init__(info)
-        self.name = info["name"] + ".unity3d"
         self.crc = info["crc"]  # unused (for now)
+        self._idname = f"[{self.id:04}] '{self.name}.unity3d'"
 
     def __repr__(self):
-        return f"<GkmasAssetBundle [{self.id:04}] '{self.name}'>"
+        return f"<GkmasAssetBundle {self._idname}>"
 
     def download(self, path: str):
 
         path = self._download_path(path)
         if path.exists():
-            logger.info(f"[{self.id:04}] '{self.name}' already exists.")
+            logger.info(f"{self._idname} already exists.")
             return
 
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
             path.write_bytes(cipher)
-            logger.success(f"[{self.id:04}] '{self.name}' has been downloaded.")
+            logger.success(f"{self._idname} has been downloaded.")
         else:
-            deobfuscator = GkmasDeobfuscator(
-                self.name.replace(".unity3d", "")
-            )  # rip extension
+            deobfuscator = GkmasDeobfuscator(self.name)
             plain = deobfuscator.decrypt(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
                 path.write_bytes(plain)
-                logger.success(
-                    f"[{self.id:04}] '{self.name}' has been downloaded and deobfuscated."
-                )
+                logger.success(f"{self._idname} has been downloaded and deobfuscated.")
             else:
                 path.write_bytes(cipher)
-                logger.error(
-                    f"[{self.id:04}] '{self.name}' has been downloaded but left obfuscated."
-                )
+                logger.error(f"{self._idname} has been downloaded but left obfuscated.")
