@@ -1,7 +1,11 @@
-from .utils import Logger, GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database
 from .blob import GkmasAssetBundle, GkmasResource
+from .utils import (
+    Logger,
+    GKMAS_OCTOCACHE_KEY,
+    GKMAS_OCTOCACHE_IV,
+)
 
 import json
 from google.protobuf.json_format import MessageToJson
@@ -60,6 +64,7 @@ class GkmasManifest:
             self.__export_csv(path / f"manifest_v{self.revision}.csv")
 
         else:
+            path.parent.mkdir(parents=True, exist_ok=True)
             if path.suffix == ".json":
                 self.__export_json(path)
             elif path.suffix == ".csv":

@@ -1,8 +1,8 @@
-from .utils import Logger, GKMAS_OBJECT_SERVER, UNITY_SIGNATURE
 from .crypt import GkmasDeobfuscator
+from .utils import Logger, GKMAS_OBJECT_SERVER, UNITY_SIGNATURE
 
 import requests
-import hashlib
+from hashlib import md5
 from pathlib import Path
 
 
@@ -43,6 +43,8 @@ class GkmasResource:
         if path.suffix == "":  # is directory
             path.mkdir(parents=True, exist_ok=True)
             path = path / self.name
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
 
         return path
 
@@ -63,7 +65,7 @@ class GkmasResource:
             logger.error(f"{self.__idname} has invalid size.")
             return b""
 
-        if hashlib.md5(response.content).hexdigest() != self.md5:
+        if md5(response.content).hexdigest() != self.md5:
             logger.error(f"{self.__idname} has invalid MD5 hash.")
             return b""
 

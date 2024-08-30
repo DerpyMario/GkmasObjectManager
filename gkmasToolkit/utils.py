@@ -1,13 +1,12 @@
 import sys
-
 from rich.console import Console
 
 
 # macro equivalents
 GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
 GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
-GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp"
-UNITY_SIGNATURE = b"Unity"
+GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
+UNITY_SIGNATURE = b"UnityFS"
 
 
 class Logger(Console):
@@ -16,14 +15,14 @@ class Logger(Console):
         super().__init__()
 
     def info(self, message: str):
-        self.print(f"[bold white]>>> [Info][/bold white] {message}")
+        self.print(f"[bold white][Info][/bold white] {message}")
 
     def success(self, message: str):
-        self.print(f"[bold green]>>> [Success][/bold green] {message}")
+        self.print(f"[bold green][Success][/bold green] {message}")
 
     def warning(self, message: str):
-        self.print(f"[bold yellow]>>> [Warning][/bold yellow] {message}")
+        self.print(f"[bold yellow][Warning][/bold yellow] {message}")
 
     def error(self, message: str):
-        self.print(f"[bold red]>>> [Error][/bold red] {message}\n{sys.exc_info()}")
+        self.print(f"[bold red][Error][/bold red] {message}\n{sys.exc_info()}")
         raise
