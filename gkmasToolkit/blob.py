@@ -1,9 +1,9 @@
 from .crypt import GkmasDeobfuscator
 from .utils import (
     Logger,
+    determine_subdir,
     GKMAS_OBJECT_SERVER,
     UNITY_SIGNATURE,
-    MAX_SUBDIR_DEPTH,
 )
 
 import requests
@@ -46,12 +46,7 @@ class GkmasResource:
         path = Path(path)
 
         if path.suffix == "":  # is directory
-            subdir = "/".join(
-                ".".join(self.name.split(".")[:-1])
-                .split("-")[0]
-                .split("_")[:MAX_SUBDIR_DEPTH]
-            )
-            path = path / subdir / self.name  # auto organize into subdirectories
+            path = path / determine_subdir(self.name) / self.name
 
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
