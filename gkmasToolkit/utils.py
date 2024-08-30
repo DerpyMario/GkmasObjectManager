@@ -12,6 +12,10 @@ GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 CSV_COLUMNS_ASSETBUNDLE = ["objectName", "md5", "name", "size", "state", "crc"]
 CSV_COLUMNS_RESOURCE = ["objectName", "md5", "name", "size", "state"]
 
+# manifest download dispatcher
+ASSETBUNDLES = ALL_ASSETBUNDLES = "<ALL_ASSETBUNDLES>"  # alias for compatibility
+RESOURCES = ALL_RESOURCES = "<ALL_RESOURCES>"
+
 # blob download
 GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
 DEFAULT_DOWNLOAD_PATH = "blob/"

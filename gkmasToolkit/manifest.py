@@ -7,6 +7,8 @@ from .utils import (
     GKMAS_OCTOCACHE_IV,
     CSV_COLUMNS_ASSETBUNDLE,
     CSV_COLUMNS_RESOURCE,
+    ALL_ASSETBUNDLES,
+    ALL_RESOURCES,
     DEFAULT_DOWNLOAD_PATH,
 )
 
@@ -54,7 +56,7 @@ class GkmasManifest:
         self.resources = [GkmasResource(res) for res in self.jdict["resourceList"]]
         self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
         self.__name2blob.update({res.name: res for res in self.resources})
-        logger.info(f"Number of asset bundles: {len(self.abs)}")
+        logger.info(f"Number of assetbundles: {len(self.abs)}")
         logger.info(f"Number of resources: {len(self.resources)}")
 
     # ------------ Download ------------
@@ -79,28 +81,22 @@ class GkmasManifest:
         self,
         criteria: Union[str, list] = ".*",
         path: str = DEFAULT_DOWNLOAD_PATH,
-        all_assets: bool = False,  # equivalent to criteria=".*" and
-        all_resources: bool = False,  # overrides/mutually exclusive with criteria
     ):
         # dispatcher
-
-        if all_assets:
-            for ab in self.abs:
-                ab.download(path)
-
-        if all_resources:
-            for res in self.resources:
-                res.download(path)
-
-        if all_assets or all_resources:
-            return
 
         if isinstance(criteria, str):
             criteria = [criteria]
 
         for criterion in criteria:
-            for file in filter(re.compile(criterion).match, self.__name2blob):
-                self.__name2blob[file].download(path)
+            if criterion == ALL_ASSETBUNDLES:  # similar to 'tokens' in NLP
+                for ab in self.abs:
+                    ab.download(path)
+            elif criterion == ALL_RESOURCES:
+                for res in self.resources:
+                    res.download(path)
+            else:
+                for file in filter(re.compile(criterion).match, self.__name2blob):
+                    self.__name2blob[file].download(path)
 
     # ------------ Export ------------
 
