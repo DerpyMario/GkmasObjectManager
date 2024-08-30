@@ -6,6 +6,8 @@ from rich.console import Console
 GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
 GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
+CSV_COLUMNS_ASSETBUNDLE = ["objectName", "md5", "name", "size", "state", "crc"]
+CSV_COLUMNS_RESOURCE = ["objectName", "md5", "name", "size", "state"]
 UNITY_SIGNATURE = b"UnityFS"
 DEFAULT_DOWNLOAD_PATH = "blob/"
 

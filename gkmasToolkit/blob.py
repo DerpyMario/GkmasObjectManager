@@ -1,5 +1,10 @@
 from .crypt import GkmasDeobfuscator
-from .utils import Logger, GKMAS_OBJECT_SERVER, UNITY_SIGNATURE
+from .utils import (
+    Logger,
+    GKMAS_OBJECT_SERVER,
+    UNITY_SIGNATURE,
+    MAX_SUBDIR_DEPTH,
+)
 
 import requests
 from hashlib import md5

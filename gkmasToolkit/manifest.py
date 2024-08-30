@@ -5,6 +5,8 @@ from .utils import (
     Logger,
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
+    CSV_COLUMNS_ASSETBUNDLE,
+    CSV_COLUMNS_RESOURCE,
     DEFAULT_DOWNLOAD_PATH,
 )
 
@@ -57,7 +59,11 @@ class GkmasManifest:
 
     # ------------ Download ------------
 
-    def download(self, files: Union[str, list], path: str = DEFAULT_DOWNLOAD_PATH):
+    def download(
+        self,
+        files: Union[str, list],
+        path: str = DEFAULT_DOWNLOAD_PATH,
+    ):
         # dispatcher
 
         if isinstance(files, str):
@@ -129,27 +135,8 @@ class GkmasManifest:
             logger.warning(f"Failed to write JSON into {path}.")
 
     def __export_csv(self, path: Path):
-        dfa = DataFrame(
-            self.jdict["assetBundleList"],
-            columns=[
-                "objectName",
-                "md5",
-                "name",
-                "size",
-                "state",
-                "crc",
-            ],
-        )
-        dfr = DataFrame(
-            self.jdict["resourceList"],
-            columns=[
-                "objectName",
-                "md5",
-                "name",
-                "size",
-                "state",
-            ],
-        )
+        dfa = DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS_ASSETBUNDLE)
+        dfr = DataFrame(self.jdict["resourceList"], columns=CSV_COLUMNS_RESOURCE)
         dfa.sort_values("name", inplace=True)
         dfr.sort_values("name", inplace=True)
         try:

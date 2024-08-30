@@ -29,7 +29,11 @@ class AESDecryptor:
 class GkmasDeobfuscator:
 
     def __init__(
-        self, key: str, offset: int = 0, stream_pos: int = 0, header_len: int = 256
+        self,
+        key: str,
+        offset: int = 0,
+        stream_pos: int = 0,
+        header_len: int = 256,
     ):
         # Algorithm courtesy of github.com/MalitsPlus
         # 'maskString' is now 'key'
