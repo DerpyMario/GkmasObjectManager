@@ -17,7 +17,6 @@ import json
 from google.protobuf.json_format import MessageToJson
 from pandas import DataFrame
 from pathlib import Path
-from typing import Union
 
 
 # The logger would better be a global variable in the
@@ -53,46 +52,27 @@ class GkmasManifest:
 
         self.jdict = json.loads(MessageToJson(protodb))
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
-        self.resources = [GkmasResource(res) for res in self.jdict["resourceList"]]
+        self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
         self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
-        self.__name2blob.update({res.name: res for res in self.resources})
+        self.__name2blob.update({res.name: res for res in self.reses})
         logger.info(f"Number of assetbundles: {len(self.abs)}")
-        logger.info(f"Number of resources: {len(self.resources)}")
+        logger.info(f"Number of resources: {len(self.reses)}")
 
     # ------------ Download ------------
 
     def download(
         self,
-        files: Union[str, list],
+        *criteria: str,
         path: str = DEFAULT_DOWNLOAD_PATH,
     ):
         # dispatcher
-
-        if isinstance(files, str):
-            files = [files]
-
-        for file in files:
-            if file not in self.__name2blob:
-                logger.warning(f"File '{file}' not found in the manifest.")
-                continue
-            self.__name2blob[file].download(path)
-
-    def download_all(
-        self,
-        criteria: Union[str, list] = ".*",
-        path: str = DEFAULT_DOWNLOAD_PATH,
-    ):
-        # dispatcher
-
-        if isinstance(criteria, str):
-            criteria = [criteria]
 
         for criterion in criteria:
             if criterion == ALL_ASSETBUNDLES:  # similar to 'tokens' in NLP
                 for ab in self.abs:
                     ab.download(path)
             elif criterion == ALL_RESOURCES:
-                for res in self.resources:
+                for res in self.reses:
                     res.download(path)
             else:
                 for file in filter(re.compile(criterion).match, self.__name2blob):

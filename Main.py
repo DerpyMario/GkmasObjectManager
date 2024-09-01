@@ -1,7 +1,7 @@
 from gkmasToolkit.manifest import GkmasManifest
-from gkmasToolkit.utils import ASSETBUNDLES, RESOURCES
+from gkmasToolkit.utils import ALL_ASSETBUNDLES, ALL_RESOURCES
 
 
 manifest = GkmasManifest("EncryptedCache/octocacheevai")
 manifest.export("DecryptedCache/")
-manifest.download_all([ASSETBUNDLES, RESOURCES])
+manifest.download(ALL_ASSETBUNDLES, ALL_RESOURCES)
