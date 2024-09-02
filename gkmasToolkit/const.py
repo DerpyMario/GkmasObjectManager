@@ -5,8 +5,7 @@ GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
 GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 
 # manifest export
-CSV_COLUMNS_ASSETBUNDLE = ["objectName", "md5", "name", "size", "state", "crc"]
-CSV_COLUMNS_RESOURCE = ["objectName", "md5", "name", "size", "state"]
+CSV_COLUMNS = ["objectName", "md5", "name", "size", "state"]
 
 # manifest download dispatcher
 ALL_ASSETBUNDLES = "<ALL_ASSETBUNDLES>"

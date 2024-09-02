@@ -1,3 +1,5 @@
+from .const import CHARACTER_ABBREVS
+
 import sys
 from rich.console import Console
 

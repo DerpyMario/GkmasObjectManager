@@ -8,8 +8,7 @@ from .const import (
     DEFAULT_DOWNLOAD_PATH,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
-    CSV_COLUMNS_ASSETBUNDLE,
-    CSV_COLUMNS_RESOURCE,
+    CSV_COLUMNS,
 )
 
 import re
@@ -115,14 +114,14 @@ class GkmasManifest:
             logger.warning(f"Failed to write JSON into {path}")
 
     def __export_csv(self, path: Path):
-        dfa = DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS_ASSETBUNDLE)
-        dfr = DataFrame(self.jdict["resourceList"], columns=CSV_COLUMNS_RESOURCE)
-        dfa.sort_values("name", inplace=True)
-        dfr.sort_values("name", inplace=True)
+        bloblist = self.jdict["assetBundleList"]
+        for blob in bloblist:
+            blob["name"] += ".unity3d"
+        bloblist.extend(self.jdict["resourceList"])
+        df = DataFrame(bloblist, columns=CSV_COLUMNS)
+        df.sort_values("name", inplace=True)
         try:
-            spath = str(path.parent) + "/" + str(path.stem)  # string form
-            dfa.to_csv(spath + "_ab.csv", index=False)
-            dfr.to_csv(spath + "_res.csv", index=False)
+            df.to_csv(path, index=False)
             logger.success(f"CSV has been written into {path}")
         except:
             logger.warning(f"Failed to write CSV into {path}")
