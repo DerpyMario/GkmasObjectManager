@@ -1,7 +1,6 @@
+from .utils import Logger, determine_subdir
 from .crypt import GkmasDeobfuscator
-from .utils import (
-    Logger,
-    determine_subdir,
+from .const import (
     GKMAS_OBJECT_SERVER,
     UNITY_SIGNATURE,
 )
@@ -33,12 +32,12 @@ class GkmasResource:
 
         path = self._download_path(path)
         if path.exists():
-            logger.warning(f"{self.__idname} already exists.")
+            logger.warning(f"{self.__idname} already exists")
             return
 
         plain = self._download_bytes()
         path.write_bytes(plain)
-        logger.success(f"{self.__idname} downloaded.")
+        logger.success(f"{self.__idname} downloaded")
 
     def _download_path(self, path: str) -> Path:
 
@@ -61,15 +60,15 @@ class GkmasResource:
         # The client can always retry (just ignore the "file already exists" warnings).
 
         if response.status_code != 200:
-            logger.error(f"{self.__idname} download failed.")
+            logger.error(f"{self.__idname} download failed")
             return b""
 
         if len(response.content) != self.size:
-            logger.error(f"{self.__idname} has invalid size.")
+            logger.error(f"{self.__idname} has invalid size")
             return b""
 
         if md5(response.content).hexdigest() != self.md5:
-            logger.error(f"{self.__idname} has invalid MD5 hash.")
+            logger.error(f"{self.__idname} has invalid MD5 hash")
             return b""
 
         return response.content
@@ -91,23 +90,23 @@ class GkmasAssetBundle(GkmasResource):
 
         path = self._download_path(path)
         if path.exists():
-            logger.warning(f"{self.__idname} already exists.")
+            logger.warning(f"{self.__idname} already exists")
             return
 
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
             path.write_bytes(cipher)
-            logger.success(f"{self.__idname} downloaded.")
+            logger.success(f"{self.__idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.decrypt(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
                 path.write_bytes(plain)
-                logger.success(f"{self.__idname} downloaded and deobfuscated.")
+                logger.success(f"{self.__idname} downloaded and deobfuscated")
             else:
                 path.write_bytes(cipher)
-                logger.warning(f"{self.__idname} downloaded but left obfuscated.")
+                logger.warning(f"{self.__idname} downloaded but LEFT OBFUSCATED")
                 # Things can happen...
                 # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.

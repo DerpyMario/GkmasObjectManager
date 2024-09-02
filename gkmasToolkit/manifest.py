@@ -1,15 +1,15 @@
+from .utils import Logger
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database
 from .blob import GkmasAssetBundle, GkmasResource
-from .utils import (
-    Logger,
+from .const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
-    CSV_COLUMNS_ASSETBUNDLE,
-    CSV_COLUMNS_RESOURCE,
+    DEFAULT_DOWNLOAD_PATH,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
-    DEFAULT_DOWNLOAD_PATH,
+    CSV_COLUMNS_ASSETBUNDLE,
+    CSV_COLUMNS_RESOURCE,
 )
 
 import re
@@ -39,13 +39,13 @@ class GkmasManifest:
         try:
             self.raw = ciphertext
             protodb.ParseFromString(self.raw)
-            logger.info("ProtoDB is not encrypted.")
+            logger.info("ProtoDB is not encrypted")
         except:
             decryptor = AESDecryptor(key, iv)
             plaintext = decryptor.decrypt(ciphertext)
             self.raw = plaintext[16:]  # trim md5 hash
             protodb.ParseFromString(self.raw)
-            logger.info("ProtoDB has been decrypted.")
+            logger.info("ProtoDB has been decrypted")
 
         self.revision = protodb.revision
         logger.info(f"Manifest revision: {self.revision}")
@@ -103,16 +103,16 @@ class GkmasManifest:
     def __export_protodb(self, path: Path):
         try:
             path.write_bytes(self.raw)
-            logger.success(f"ProtoDB has been written into {path}.")
+            logger.success(f"ProtoDB has been written into {path}")
         except:
-            logger.warning(f"Failed to write ProtoDB into {path}.")
+            logger.warning(f"Failed to write ProtoDB into {path}")
 
     def __export_json(self, path: Path):
         try:
             path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
-            logger.success(f"JSON has been written into {path}.")
+            logger.success(f"JSON has been written into {path}")
         except:
-            logger.warning(f"Failed to write JSON into {path}.")
+            logger.warning(f"Failed to write JSON into {path}")
 
     def __export_csv(self, path: Path):
         dfa = DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS_ASSETBUNDLE)
@@ -123,6 +123,6 @@ class GkmasManifest:
             spath = str(path.parent) + "/" + str(path.stem)  # string form
             dfa.to_csv(spath + "_ab.csv", index=False)
             dfr.to_csv(spath + "_res.csv", index=False)
-            logger.success(f"CSV has been written into {path}.")
+            logger.success(f"CSV has been written into {path}")
         except:
-            logger.warning(f"Failed to write CSV into {path}.")
+            logger.warning(f"Failed to write CSV into {path}")
