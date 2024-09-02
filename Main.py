@@ -1,5 +1,4 @@
-from gkmasToolkit.manifest import GkmasManifest
-from gkmasToolkit.utils import ALL_ASSETBUNDLES, ALL_RESOURCES
+from gkmasToolkit import GkmasManifest, ALL_ASSETBUNDLES, ALL_RESOURCES
 
 
 manifest = GkmasManifest("EncryptedCache/octocacheevai")
