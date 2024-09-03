@@ -15,8 +15,8 @@ from .const import (
 
 import re
 import json
+import pandas as pd
 from google.protobuf.json_format import MessageToJson
-from pandas import DataFrame
 from pathlib import Path
 from typing import Union, Tuple
 
@@ -61,13 +61,11 @@ class GkmasManifest:
         self.__parse_jdict(json.loads(MessageToJson(protodb)))
 
     def __parse_jdict(self, jdict: dict):
-
         self.jdict = jdict
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
         self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
         self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
         self.__name2blob.update({res.name: res for res in self.reses})
-
         logger.info(f"Found {len(self.abs)} assetbundles")
         logger.info(f"Found {len(self.reses)} resources")
         logger.info(f"Detected revision: {self.revision}")
@@ -188,11 +186,10 @@ class GkmasManifest:
             logger.warning(f"Failed to write JSON into {path}")
 
     def __export_csv(self, path: Path):
-        bloblist = self.jdict["assetBundleList"]
-        for blob in bloblist:
-            blob["name"] += ".unity3d"
-        bloblist.extend(self.jdict["resourceList"])
-        df = DataFrame(bloblist, columns=CSV_COLUMNS)
+        dfa = pd.DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS)
+        dfa["name"] = dfa["name"].apply(lambda x: x + ".unity3d")
+        dfr = pd.DataFrame(self.jdict["resourceList"], columns=CSV_COLUMNS)
+        df = pd.concat([dfa, dfr], ignore_index=True)
         df.sort_values("name", inplace=True)
         try:
             df.to_csv(path, index=False)
