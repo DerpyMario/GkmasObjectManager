@@ -23,7 +23,7 @@ class GkmasResource:
         self.state = info["state"]  # unused
         self.md5 = info["md5"]
         self.objectName = info["objectName"]
-        self.__idname = f"[{self.id:04}] '{self.name}'"
+        self.__idname = f"RS[{self.id:05}] '{self.name}'"
 
     def __repr__(self):
         return f"<GkmasResource {self.__idname}>"
@@ -81,7 +81,7 @@ class GkmasAssetBundle(GkmasResource):
         super().__init__(info)
         self.name = info["name"] + ".unity3d"
         self.crc = info["crc"]  # unused (for now)
-        self.__idname = f"[{self.id:04}] '{self.name}'"
+        self.__idname = f"AB[{self.id:05}] '{self.name}'"
 
     def __repr__(self):
         return f"<GkmasAssetBundle {self.__idname}>"

@@ -9,11 +9,11 @@ message Database {
 }
 
 message Data {
-    int32 id = 1; 
+    int32 id = 1;
     string filepath = 2;
     string name = 3;
     int32 size = 4;
-    uint32 crc = 5; 
+    uint32 crc = 5;
     int32 priority = 6;
     repeated int32 tagid = 7;
     repeated int32 dependencies = 8;
@@ -22,12 +22,12 @@ message Data {
     string objectName = 11;
     uint64 generation = 12;
     int32 uploadVersionId = 13;
-    
+
     enum State {
         NONE = 0;
-		ADD = 1;
-		UPDATE = 2;
-		LATEST = 3;
-		DELETE = 4;
+        ADD = 1;
+        UPDATE = 2;
+        LATEST = 3;
+        DELETE = 4;
     }
 }
