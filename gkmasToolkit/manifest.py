@@ -17,6 +17,7 @@ import json
 from google.protobuf.json_format import MessageToJson
 from pandas import DataFrame
 from pathlib import Path
+from typing import Union, Tuple
 
 
 # The logger would better be a global variable in the
@@ -26,38 +27,49 @@ logger = Logger()
 
 class GkmasManifest:
 
-    def __init__(
-        self,
-        path: str,
-        key: str = GKMAS_OCTOCACHE_KEY,
-        iv: str = GKMAS_OCTOCACHE_IV,
-    ):
+    def __init__(self, src: Union[str, Tuple[dict, int, int]]):
+        # src can be a path to a ProtoDB file,
+        # or a (diff-dict, rev1, rev2) tuple [INTERNAL USE ONLY]
+
+        if isinstance(src, tuple):
+            diffdict, rev1, rev2 = src
+            self.raw = None
+            self.__parse_jdict(diffdict)
+            self.revision = f"{rev1}-{rev2}"
+            logger.info("Manifest created from differentiation")
+            logger.info(f"Manifest revision: {self.revision}")
+            return
 
         protodb = Database()
-        ciphertext = Path(path).read_bytes()
+        ciphertext = Path(src).read_bytes()
 
         try:
             self.raw = ciphertext
             protodb.ParseFromString(self.raw)
-            logger.info("ProtoDB is not encrypted")
+            self.__parse_jdict(json.loads(MessageToJson(protodb)))
+            logger.info("Manifest created from unencrypted ProtoDB")
+
         except:
-            decryptor = AESDecryptor(key, iv)
+            decryptor = AESDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
             plaintext = decryptor.decrypt(ciphertext)
             self.raw = plaintext[16:]  # trim md5 hash
             protodb.ParseFromString(self.raw)
-            logger.info("ProtoDB has been decrypted")
+            self.__parse_jdict(json.loads(MessageToJson(protodb)))
+            logger.info("Manifest created from encrypted ProtoDB")
 
         self.revision = protodb.revision
         logger.info(f"Manifest revision: {self.revision}")
 
-        self.jdict = json.loads(MessageToJson(protodb))
+    def __parse_jdict(self, jdict: dict):
+
+        self.jdict = jdict
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
         self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
         self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
         self.__name2blob.update({res.name: res for res in self.reses})
 
-        logger.info(f"Number of assetbundles: {len(self.abs)}")
-        logger.info(f"Number of resources: {len(self.reses)}")
+        logger.info(f"Found {len(self.abs)} assetbundles")
+        logger.info(f"Found {len(self.reses)} resources")
 
     # ------------ Magic Methods ------------
 
@@ -76,22 +88,21 @@ class GkmasManifest:
     def __contains__(self, key: str):
         return key in self.__name2blob
 
+    def __listdiff(self, a, b):
+        return [item for item in a if item not in b]
+
     def __sub__(self, other):
 
         # rip 'dependencies' field for comparison
-        abl_this = set(
-            [
-                {k: v for k, v in ab.items() if k != "dependencies"}
-                for ab in self.jdict["assetBundleList"]
-            ]
-        )
-        abl_other = set(
-            [
-                {k: v for k, v in ab.items() if k != "dependencies"}
-                for ab in other.jdict["assetBundleList"]
-            ]
-        )
-        abl_diff_ids = [ab["id"] for ab in abl_this - abl_other]
+        abl_this = [
+            {k: v for k, v in ab.items() if k != "dependencies"}
+            for ab in self.jdict["assetBundleList"]
+        ]
+        abl_other = [
+            {k: v for k, v in ab.items() if k != "dependencies"}
+            for ab in other.jdict["assetBundleList"]
+        ]
+        abl_diff_ids = [ab["id"] for ab in self.__listdiff(abl_this, abl_other)]
 
         # retain complete fields for output
         abl_diff = [
@@ -99,9 +110,9 @@ class GkmasManifest:
         ]
 
         # resource list doesn't have 'dependencies' field
-        resl_this = set(self.jdict["resourceList"])
-        resl_other = set(other.jdict["resourceList"])
-        resl_diff = sorted(list(resl_this - resl_other), key=lambda x: x["id"])
+        resl_this = self.jdict["resourceList"]
+        resl_other = other.jdict["resourceList"]
+        resl_diff = self.__listdiff(resl_this, resl_other)
 
         return {"assetBundleList": abl_diff, "resourceList": resl_diff}
 
