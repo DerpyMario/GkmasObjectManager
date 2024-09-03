@@ -59,6 +59,52 @@ class GkmasManifest:
         logger.info(f"Number of assetbundles: {len(self.abs)}")
         logger.info(f"Number of resources: {len(self.reses)}")
 
+    # ------------ Magic Methods ------------
+
+    def __repr__(self):
+        return f"<GkmasManifest revision {self.revision}>"
+
+    def __getitem__(self, key: str):
+        return self.__name2blob[key]
+
+    def __iter__(self):
+        return iter(self.__name2blob.values())
+
+    def __len__(self):
+        return len(self.__name2blob)
+
+    def __contains__(self, key: str):
+        return key in self.__name2blob
+
+    def __sub__(self, other):
+
+        # rip 'dependencies' field for comparison
+        abl_this = set(
+            [
+                {k: v for k, v in ab.items() if k != "dependencies"}
+                for ab in self.jdict["assetBundleList"]
+            ]
+        )
+        abl_other = set(
+            [
+                {k: v for k, v in ab.items() if k != "dependencies"}
+                for ab in other.jdict["assetBundleList"]
+            ]
+        )
+        abl_diff_ids = [ab["id"] for ab in abl_this - abl_other]
+
+        # retain complete fields for output
+        abl_diff = [
+            ab for ab in self.jdict["assetBundleList"] if ab["id"] in abl_diff_ids
+        ]
+
+        # resource list doesn't have 'dependencies' field
+        resl_this = set(self.jdict["resourceList"])
+        resl_other = set(other.jdict["resourceList"])
+        resl_diff = sorted(list(resl_this - resl_other), key=lambda x: x["id"])
+
+        return {"assetBundleList": abl_diff, "resourceList": resl_diff}
+
     # ------------ Download ------------
 
     def download(
