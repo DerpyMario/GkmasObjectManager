@@ -46,29 +46,20 @@ class GkmasDeobfuscator:
 
     def __make_mask(self, key: str) -> bytes:
 
-        masksize = len(key) << 1
+        keysize = len(key)
+        masksize = keysize * 2
         mask = bytearray(masksize)
         key = bytes(key, "utf-8")
 
-        if len(key) >= 1:
-            i = 0
-            j = masksize - 1
-            for char in key:
-                mask[i] = char
-                mask[j] = ~char & 0xFF
-                i += 2
-                j -= 2
+        for i, char in enumerate(key):
+            mask[i * 2] = char
+            mask[masksize - 1 - i * 2] = ~char & 0xFF  # cast to unsigned
 
-        if masksize >= 1:
-            x = 0x9B
-            ptr = 0
-            for _ in range(masksize):
-                x = (((x & 1) << 7) | (x >> 1)) ^ mask[ptr]
-                ptr += 1
-            for i in range(masksize):
-                mask[i] ^= x
+        x = 0x9B
+        for b in mask:
+            x = (((x & 1) << 7) | (x >> 1)) ^ b
 
-        return bytes(mask)
+        return bytes([b ^ x for b in mask])
 
     def decrypt(self, cipher: bytes) -> bytes:
 
