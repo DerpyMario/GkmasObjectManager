@@ -34,31 +34,30 @@ class GkmasManifest:
         if isinstance(src, tuple):
             diffdict, rev1, rev2 = src
             self.raw = None
-            self.__parse_jdict(diffdict)
             self.revision = f"{rev1}-{rev2}"
+            self.__parse_jdict(diffdict)
             logger.info("Manifest created from differentiation")
-            logger.info(f"Manifest revision: {self.revision}")
             return
 
         protodb = Database()
         ciphertext = Path(src).read_bytes()
 
         try:
-            self.raw = ciphertext
-            protodb.ParseFromString(self.raw)
-            self.__parse_jdict(json.loads(MessageToJson(protodb)))
+            self.__parse_raw(ciphertext)
             logger.info("Manifest created from unencrypted ProtoDB")
 
         except:
             decryptor = AESDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
             plaintext = decryptor.decrypt(ciphertext)
-            self.raw = plaintext[16:]  # trim md5 hash
-            protodb.ParseFromString(self.raw)
-            self.__parse_jdict(json.loads(MessageToJson(protodb)))
+            self.__parse_raw(plaintext[16:])  # trim md5 hash
             logger.info("Manifest created from encrypted ProtoDB")
 
+    def __parse_raw(self, raw: bytes):
+        protodb = Database()
+        protodb.ParseFromString(raw)
+        self.raw = raw
         self.revision = protodb.revision
-        logger.info(f"Manifest revision: {self.revision}")
+        self.__parse_jdict(json.loads(MessageToJson(protodb)))
 
     def __parse_jdict(self, jdict: dict):
 
@@ -70,6 +69,7 @@ class GkmasManifest:
 
         logger.info(f"Found {len(self.abs)} assetbundles")
         logger.info(f"Found {len(self.reses)} resources")
+        logger.info(f"Detected revision: {self.revision}")
 
     # ------------ Magic Methods ------------
 
@@ -114,7 +114,13 @@ class GkmasManifest:
         resl_other = other.jdict["resourceList"]
         resl_diff = self.__listdiff(resl_this, resl_other)
 
-        return {"assetBundleList": abl_diff, "resourceList": resl_diff}
+        return GkmasManifest(
+            (
+                {"assetBundleList": abl_diff, "resourceList": resl_diff},
+                self.revision,
+                other.revision,
+            )
+        )
 
     # ------------ Download ------------
 
