@@ -9,6 +9,7 @@ from .const import (
     DEFAULT_DOWNLOAD_NWORKER,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
+    DIFF_IGNORE,
     CSV_COLUMNS,
 )
 
@@ -88,31 +89,32 @@ class GkmasManifest:
     def __contains__(self, key: str):
         return key in self.__name2blob
 
-    def __listdiff(self, a, b):
+    def __list_diff(self, a: list, b: list) -> list:
         return [item for item in a if item not in b]
+
+    def __rip_field(self, l: list, rip: list) -> list:
+        return [{k: v for k, v in ab.items() if k not in rip} for ab in l]
 
     def __sub__(self, other):
 
-        # rip 'dependencies' field for comparison
-        abl_this = [
-            {k: v for k, v in ab.items() if k != "dependencies"}
-            for ab in self.jdict["assetBundleList"]
-        ]
-        abl_other = [
-            {k: v for k, v in ab.items() if k != "dependencies"}
-            for ab in other.jdict["assetBundleList"]
-        ]
-        abl_diff_ids = [ab["id"] for ab in self.__listdiff(abl_this, abl_other)]
+        # rip unused fields for comparison
+        abl_this = self.__rip_field(self.jdict["assetBundleList"], DIFF_IGNORE)
+        abl_other = self.__rip_field(other.jdict["assetBundleList"], DIFF_IGNORE)
+        abl_diff_ids = [ab["id"] for ab in self.__list_diff(abl_this, abl_other)]
 
         # retain complete fields for output
         abl_diff = [
             ab for ab in self.jdict["assetBundleList"] if ab["id"] in abl_diff_ids
         ]
 
-        # resource list doesn't have 'dependencies' field
-        resl_this = self.jdict["resourceList"]
-        resl_other = other.jdict["resourceList"]
-        resl_diff = self.__listdiff(resl_this, resl_other)
+        # turns out that resource list also does have unused fields,
+        # but we haven't found a way to reduce code duplication
+        resl_this = self.__rip_field(self.jdict["resourceList"], DIFF_IGNORE)
+        resl_other = self.__rip_field(other.jdict["resourceList"], DIFF_IGNORE)
+        resl_diff_ids = [res["id"] for res in self.__list_diff(resl_this, resl_other)]
+        resl_diff = [
+            res for res in self.jdict["resourceList"] if res["id"] in resl_diff_ids
+        ]
 
         return GkmasManifest(
             (
