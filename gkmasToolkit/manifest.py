@@ -1,4 +1,4 @@
-from .utils import Logger
+from .utils import Logger, ConcurrentDownloader
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database
 from .blob import GkmasAssetBundle, GkmasResource
@@ -6,6 +6,7 @@ from .const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
     DEFAULT_DOWNLOAD_PATH,
+    DEFAULT_DOWNLOAD_NWORKER,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
     CSV_COLUMNS,
@@ -54,6 +55,7 @@ class GkmasManifest:
         self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
         self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
         self.__name2blob.update({res.name: res for res in self.reses})
+
         logger.info(f"Number of assetbundles: {len(self.abs)}")
         logger.info(f"Number of resources: {len(self.reses)}")
 
@@ -63,19 +65,26 @@ class GkmasManifest:
         self,
         *criteria: str,
         path: str = DEFAULT_DOWNLOAD_PATH,
+        nworker: int = DEFAULT_DOWNLOAD_NWORKER,
     ):
-        # dispatcher
+
+        blobs = []
 
         for criterion in criteria:
             if criterion == ALL_ASSETBUNDLES:  # similar to 'tokens' in NLP
-                for ab in self.abs:
-                    ab.download(path)
+                blobs.extend(self.abs)
             elif criterion == ALL_RESOURCES:
-                for res in self.reses:
-                    res.download(path)
+                blobs.extend(self.reses)
             else:
-                for file in filter(re.compile(criterion).match, self.__name2blob):
-                    self.__name2blob[file].download(path)
+                blobs.extend(
+                    [
+                        self.__name2blob[file]
+                        for file in self.__name2blob
+                        if re.match(criterion, file)
+                    ]
+                )
+
+        ConcurrentDownloader(nworker).dispatch(blobs, path)
 
     # ------------ Export ------------
 

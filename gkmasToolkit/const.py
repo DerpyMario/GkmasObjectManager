@@ -1,3 +1,6 @@
+import multiprocessing
+
+
 ### Macro equivalents
 
 # manifest decrypt
@@ -14,6 +17,7 @@ ALL_RESOURCES = "<ALL_RESOURCES>"
 # blob download
 GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
 DEFAULT_DOWNLOAD_PATH = "blob/"
+DEFAULT_DOWNLOAD_NWORKER = multiprocessing.cpu_count()
 CHARACTER_ABBREVS = [
     "hski",
     "ttmr",
