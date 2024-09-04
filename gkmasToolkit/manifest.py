@@ -38,28 +38,28 @@ class GkmasManifest:
         ciphertext = Path(src).read_bytes()
 
         try:
-            self.__parse_raw(ciphertext)
+            self._parse_raw(ciphertext)
             logger.info("Manifest created from unencrypted ProtoDB")
 
         except:
             decryptor = AESDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
             plaintext = decryptor.decrypt(ciphertext)
-            self.__parse_raw(plaintext[16:])  # trim md5 hash
+            self._parse_raw(plaintext[16:])  # trim md5 hash
             logger.info("Manifest created from encrypted ProtoDB")
 
-    def __parse_raw(self, raw: bytes):
+    def _parse_raw(self, raw: bytes):
         protodb = Database()
         protodb.ParseFromString(raw)
         self.raw = raw
         self.revision = protodb.revision
-        self.__parse_jdict(json.loads(MessageToJson(protodb)))
+        self._parse_jdict(json.loads(MessageToJson(protodb)))
 
-    def __parse_jdict(self, jdict: dict):
+    def _parse_jdict(self, jdict: dict):
         self.jdict = jdict
         self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
         self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
-        self.__name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
-        self.__name2blob.update({res.name: res for res in self.reses})
+        self._name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
+        self._name2blob.update({res.name: res for res in self.reses})
         logger.info(f"Found {len(self.abs)} assetbundles")
         logger.info(f"Found {len(self.reses)} resources")
         logger.info(f"Detected revision: {self.revision}")
@@ -70,36 +70,36 @@ class GkmasManifest:
         return f"<GkmasManifest revision {self.revision}>"
 
     def __getitem__(self, key: str):
-        return self.__name2blob[key]
+        return self._name2blob[key]
 
     def __iter__(self):
-        return iter(self.__name2blob.values())
+        return iter(self._name2blob.values())
 
     def __len__(self):
-        return len(self.__name2blob)
+        return len(self._name2blob)
 
     def __contains__(self, key: str):
-        return key in self.__name2blob
+        return key in self._name2blob
 
-    def __list_diff(self, a: list, b: list) -> list:
+    def _list_diff(self, a: list, b: list) -> list:
         return [item for item in a if item not in b]
 
-    def __rip_field(self, l: list, rip: list) -> list:
+    def _rip_field(self, l: list, rip: list) -> list:
         return [{k: v for k, v in ab.items() if k not in rip} for ab in l]
 
-    def __make_diff_manifest(self, diffdict: dict, rev1: str, rev2: str):
+    def _make_diff_manifest(self, diffdict: dict, rev1: str, rev2: str):
         manifest = GkmasManifest()
         manifest.revision = f"{rev1}-{rev2}"
-        manifest.__parse_jdict(diffdict)
+        manifest._parse_jdict(diffdict)
         logger.info("Manifest created from differentiation")
         return manifest
 
     def __sub__(self, other):
 
         # rip unused fields for comparison
-        abl_this = self.__rip_field(self.jdict["assetBundleList"], DIFF_IGNORE)
-        abl_other = self.__rip_field(other.jdict["assetBundleList"], DIFF_IGNORE)
-        abl_diff_ids = [ab["id"] for ab in self.__list_diff(abl_this, abl_other)]
+        abl_this = self._rip_field(self.jdict["assetBundleList"], DIFF_IGNORE)
+        abl_other = self._rip_field(other.jdict["assetBundleList"], DIFF_IGNORE)
+        abl_diff_ids = [ab["id"] for ab in self._list_diff(abl_this, abl_other)]
 
         # retain complete fields for output
         abl_diff = [
@@ -108,14 +108,14 @@ class GkmasManifest:
 
         # turns out that resource list also does have unused fields,
         # but we haven't found a way to reduce code duplication
-        resl_this = self.__rip_field(self.jdict["resourceList"], DIFF_IGNORE)
-        resl_other = self.__rip_field(other.jdict["resourceList"], DIFF_IGNORE)
-        resl_diff_ids = [res["id"] for res in self.__list_diff(resl_this, resl_other)]
+        resl_this = self._rip_field(self.jdict["resourceList"], DIFF_IGNORE)
+        resl_other = self._rip_field(other.jdict["resourceList"], DIFF_IGNORE)
+        resl_diff_ids = [res["id"] for res in self._list_diff(resl_this, resl_other)]
         resl_diff = [
             res for res in self.jdict["resourceList"] if res["id"] in resl_diff_ids
         ]
 
-        return __make_diff_manifest(
+        return _make_diff_manifest(
             {"assetBundleList": abl_diff, "resourceList": resl_diff},
             self.revision,
             other.revision,
@@ -140,8 +140,8 @@ class GkmasManifest:
             else:
                 blobs.extend(
                     [
-                        self.__name2blob[file]
-                        for file in self.__name2blob
+                        self._name2blob[file]
+                        for file in self._name2blob
                         if re.match(criterion, file)
                     ]
                 )
@@ -157,34 +157,34 @@ class GkmasManifest:
 
         if path.suffix == "":  # used to be path.is_dir()
             path.mkdir(parents=True, exist_ok=True)
-            self.__export_protodb(path / f"manifest_v{self.revision}")
-            self.__export_json(path / f"manifest_v{self.revision}.json")
-            self.__export_csv(path / f"manifest_v{self.revision}.csv")
+            self._export_protodb(path / f"manifest_v{self.revision}")
+            self._export_json(path / f"manifest_v{self.revision}.json")
+            self._export_csv(path / f"manifest_v{self.revision}.csv")
 
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             if path.suffix == ".json":
-                self.__export_json(path)
+                self._export_json(path)
             elif path.suffix == ".csv":
-                self.__export_csv(path)
+                self._export_csv(path)
             else:
-                self.__export_protodb(path)
+                self._export_protodb(path)
 
-    def __export_protodb(self, path: Path):
+    def _export_protodb(self, path: Path):
         try:
             path.write_bytes(self.raw)
             logger.success(f"ProtoDB has been written into {path}")
         except:
             logger.warning(f"Failed to write ProtoDB into {path}")
 
-    def __export_json(self, path: Path):
+    def _export_json(self, path: Path):
         try:
             path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
             logger.success(f"JSON has been written into {path}")
         except:
             logger.warning(f"Failed to write JSON into {path}")
 
-    def __export_csv(self, path: Path):
+    def _export_csv(self, path: Path):
         dfa = pd.DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS)
         dfa["name"] = dfa["name"].apply(lambda x: x + ".unity3d")
         dfr = pd.DataFrame(self.jdict["resourceList"], columns=CSV_COLUMNS)

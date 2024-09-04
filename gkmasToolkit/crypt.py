@@ -42,9 +42,9 @@ class GkmasDeobfuscator:
         self.offset = offset
         self.stream_pos = stream_pos
         self.header_len = header_len
-        self.mask = self.__make_mask(key)
+        self.mask = self._make_mask(key)
 
-    def __make_mask(self, key: str) -> bytes:
+    def _make_mask(self, key: str) -> bytes:
 
         keysize = len(key)
         masksize = keysize * 2
