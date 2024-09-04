@@ -1,28 +1,8 @@
-from .const import (
-    DICLIST_DIFF_IGNORED_FIELDS,
-    CHARACTER_ABBREVS,
-)
+from .const import CHARACTER_ABBREVS
 
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-
-def diclist_rip_field(l: list, targets: list) -> list:
-    return [{k: v for k, v in i.items() if k not in targets} for i in l]
-
-
-def diclist_diff(a: list, b: list) -> list:
-    return [item for item in a if item not in b]
-
-
-def diclist_diff_with_ignore(a: list, b: list) -> list:
-    # rip unused fields for comparison
-    a_ = diclist_rip_field(a, DICLIST_DIFF_IGNORED_FIELDS)
-    b_ = diclist_rip_field(b, DICLIST_DIFF_IGNORED_FIELDS)
-    diff_ids = [i["id"] for i in diclist_diff(a_, b_)]
-    # retain complete fields for output
-    return [i for i in a if i["id"] in diff_ids]
 
 
 def determine_subdir(filename: str) -> str:
@@ -37,6 +17,35 @@ def determine_subdir(filename: str) -> str:
             break
 
     return "/".join(segments[: i + 1])
+
+
+class Diclist(list):
+
+    def __init__(self, diclist: list):
+        super().__init__(diclist)
+
+    def __sub__(self, other: "Diclist") -> "Diclist":
+        return Diclist([item for item in self if item not in other])
+
+    def rip_field(self, targets: list) -> "Diclist":
+        return Diclist(
+            [{k: v for k, v in entry.items() if k not in targets} for entry in self]
+        )
+
+    def diff(self, other: "Diclist", ignored_fields: list = []) -> "Diclist":
+
+        if not ignored_fields:
+            return self - other
+
+        # rip unused fields for comparison
+        self_rip = self.rip_field(ignored_fields)
+        other_rip = other.rip_field(ignored_fields)
+
+        # retain complete fields for output
+        raw_lookup = {i: entry for i, entry in enumerate(self)}
+        return Diclist(
+            [raw_lookup[self_rip.index(entry)] for entry in self_rip - other_rip]
+        )
 
 
 class Logger(Console):

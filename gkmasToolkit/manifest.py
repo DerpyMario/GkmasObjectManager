@@ -1,10 +1,11 @@
-from .utils import diclist_diff_with_ignore, Logger, ConcurrentDownloader
+from .utils import Diclist, Logger, ConcurrentDownloader
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database
 from .blob import GkmasAssetBundle, GkmasResource
 from .const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
+    DICLIST_IGNORED_FIELDS,
     DEFAULT_DOWNLOAD_PATH,
     DEFAULT_DOWNLOAD_NWORKER,
     ALL_ASSETBUNDLES,
@@ -55,8 +56,10 @@ class GkmasManifest:
 
     def _parse_jdict(self, jdict: dict):
         self.jdict = jdict
-        self.abs = [GkmasAssetBundle(ab) for ab in self.jdict["assetBundleList"]]
-        self.reses = [GkmasResource(res) for res in self.jdict["resourceList"]]
+        self._abl = Diclist(self.jdict["assetBundleList"])
+        self._resl = Diclist(self.jdict["resourceList"])
+        self.abs = [GkmasAssetBundle(ab) for ab in self._abl]
+        self.reses = [GkmasResource(res) for res in self._resl]
         self._name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
         self._name2blob.update({res.name: res for res in self.reses})
         logger.info(f"Found {len(self.abs)} assetbundles")
@@ -88,15 +91,10 @@ class GkmasManifest:
         return manifest
 
     def __sub__(self, other):
-
         return self._make_diff_manifest(
             {
-                "assetBundleList": diclist_diff_with_ignore(
-                    self.jdict["assetBundleList"], other.jdict["assetBundleList"]
-                ),
-                "resourceList": diclist_diff_with_ignore(
-                    self.jdict["resourceList"], other.jdict["resourceList"]
-                ),
+                "assetBundleList": self._abl.diff(other._abl, DICLIST_IGNORED_FIELDS),
+                "resourceList": self._resl.diff(other._resl, DICLIST_IGNORED_FIELDS),
             },
             self.revision,
             other.revision,
@@ -166,9 +164,9 @@ class GkmasManifest:
             logger.warning(f"Failed to write JSON into {path}")
 
     def _export_csv(self, path: Path):
-        dfa = pd.DataFrame(self.jdict["assetBundleList"], columns=CSV_COLUMNS)
+        dfa = pd.DataFrame(self._abl, columns=CSV_COLUMNS)
         dfa["name"] = dfa["name"].apply(lambda x: x + ".unity3d")
-        dfr = pd.DataFrame(self.jdict["resourceList"], columns=CSV_COLUMNS)
+        dfr = pd.DataFrame(self._resl, columns=CSV_COLUMNS)
         df = pd.concat([dfa, dfr], ignore_index=True)
         df.sort_values("name", inplace=True)
         try:
