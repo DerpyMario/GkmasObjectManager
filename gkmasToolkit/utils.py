@@ -1,8 +1,28 @@
-from .const import CHARACTER_ABBREVS
+from .const import (
+    DICLIST_DIFF_IGNORED_FIELDS,
+    CHARACTER_ABBREVS,
+)
 
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+def diclist_rip_field(l: list, targets: list) -> list:
+    return [{k: v for k, v in i.items() if k not in targets} for i in l]
+
+
+def diclist_diff(a: list, b: list) -> list:
+    return [item for item in a if item not in b]
+
+
+def diclist_diff_with_ignore(a: list, b: list) -> list:
+    # rip unused fields for comparison
+    a_ = diclist_rip_field(a, DICLIST_DIFF_IGNORED_FIELDS)
+    b_ = diclist_rip_field(b, DICLIST_DIFF_IGNORED_FIELDS)
+    diff_ids = [i["id"] for i in diclist_diff(a_, b_)]
+    # retain complete fields for output
+    return [i for i in a if i["id"] in diff_ids]
 
 
 def determine_subdir(filename: str) -> str:

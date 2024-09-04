@@ -1,4 +1,4 @@
-from .utils import Logger, ConcurrentDownloader
+from .utils import diclist_diff_with_ignore, Logger, ConcurrentDownloader
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database
 from .blob import GkmasAssetBundle, GkmasResource
@@ -9,7 +9,6 @@ from .const import (
     DEFAULT_DOWNLOAD_NWORKER,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
-    DIFF_IGNORE,
     CSV_COLUMNS,
 )
 
@@ -81,12 +80,6 @@ class GkmasManifest:
     def __contains__(self, key: str):
         return key in self._name2blob
 
-    def _list_diff(self, a: list, b: list) -> list:
-        return [item for item in a if item not in b]
-
-    def _rip_field(self, l: list, rip: list) -> list:
-        return [{k: v for k, v in ab.items() if k not in rip} for ab in l]
-
     def _make_diff_manifest(self, diffdict: dict, rev1: str, rev2: str):
         manifest = GkmasManifest()
         manifest.revision = f"{rev1}-{rev2}"
@@ -96,27 +89,15 @@ class GkmasManifest:
 
     def __sub__(self, other):
 
-        # rip unused fields for comparison
-        abl_this = self._rip_field(self.jdict["assetBundleList"], DIFF_IGNORE)
-        abl_other = self._rip_field(other.jdict["assetBundleList"], DIFF_IGNORE)
-        abl_diff_ids = [ab["id"] for ab in self._list_diff(abl_this, abl_other)]
-
-        # retain complete fields for output
-        abl_diff = [
-            ab for ab in self.jdict["assetBundleList"] if ab["id"] in abl_diff_ids
-        ]
-
-        # turns out that resource list also does have unused fields,
-        # but we haven't found a way to reduce code duplication
-        resl_this = self._rip_field(self.jdict["resourceList"], DIFF_IGNORE)
-        resl_other = self._rip_field(other.jdict["resourceList"], DIFF_IGNORE)
-        resl_diff_ids = [res["id"] for res in self._list_diff(resl_this, resl_other)]
-        resl_diff = [
-            res for res in self.jdict["resourceList"] if res["id"] in resl_diff_ids
-        ]
-
-        return _make_diff_manifest(
-            {"assetBundleList": abl_diff, "resourceList": resl_diff},
+        return self._make_diff_manifest(
+            {
+                "assetBundleList": diclist_diff_with_ignore(
+                    self.jdict["assetBundleList"], other.jdict["assetBundleList"]
+                ),
+                "resourceList": diclist_diff_with_ignore(
+                    self.jdict["resourceList"], other.jdict["resourceList"]
+                ),
+            },
             self.revision,
             other.revision,
         )
