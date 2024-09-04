@@ -18,7 +18,6 @@ import json
 import pandas as pd
 from google.protobuf.json_format import MessageToJson
 from pathlib import Path
-from typing import Union, Tuple
 
 
 # The logger would better be a global variable in the
@@ -28,16 +27,11 @@ logger = Logger()
 
 class GkmasManifest:
 
-    def __init__(self, src: Union[str, Tuple[dict, int, int]]):
-        # src can be a path to a ProtoDB file,
-        # or a (diff-dict, rev1, rev2) tuple [INTERNAL USE ONLY]
+    def __init__(self, src: str = None):
 
-        if isinstance(src, tuple):
-            diffdict, rev1, rev2 = src
+        if not src:  # empty constructor
             self.raw = None
-            self.revision = f"{rev1}-{rev2}"
-            self.__parse_jdict(diffdict)
-            logger.info("Manifest created from differentiation")
+            self.revision = None
             return
 
         protodb = Database()
@@ -93,6 +87,13 @@ class GkmasManifest:
     def __rip_field(self, l: list, rip: list) -> list:
         return [{k: v for k, v in ab.items() if k not in rip} for ab in l]
 
+    def __make_diff_manifest(self, diffdict: dict, rev1: str, rev2: str):
+        manifest = GkmasManifest()
+        manifest.revision = f"{rev1}-{rev2}"
+        manifest.__parse_jdict(diffdict)
+        logger.info("Manifest created from differentiation")
+        return manifest
+
     def __sub__(self, other):
 
         # rip unused fields for comparison
@@ -114,12 +115,10 @@ class GkmasManifest:
             res for res in self.jdict["resourceList"] if res["id"] in resl_diff_ids
         ]
 
-        return GkmasManifest(
-            (
-                {"assetBundleList": abl_diff, "resourceList": resl_diff},
-                self.revision,
-                other.revision,
-            )
+        return __make_diff_manifest(
+            {"assetBundleList": abl_diff, "resourceList": resl_diff},
+            self.revision,
+            other.revision,
         )
 
     # ------------ Download ------------
