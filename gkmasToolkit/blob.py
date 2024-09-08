@@ -7,15 +7,19 @@ from .utils import Logger, determine_subdir
 from .crypt import GkmasDeobfuscator
 from .const import (
     GKMAS_OBJECT_SERVER,
+    GKMAS_UNITY_VERSION,
     UNITY_SIGNATURE,
 )
 
+import UnityPy
 import requests
+from io import BytesIO
 from hashlib import md5
 from pathlib import Path
 
 
 logger = Logger()
+UnityPy.config.FALLBACK_UNITY_VERSION = GKMAS_UNITY_VERSION
 
 
 class GkmasResource:
@@ -101,17 +105,38 @@ class GkmasAssetBundle(GkmasResource):
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-            path.write_bytes(cipher)
+            self._write_bytes(path, cipher)
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.decrypt(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-                path.write_bytes(plain)
+                self._write_bytes(path, plain)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
-                path.write_bytes(cipher)
+                self._write_bytes(path, cipher)
                 logger.warning(f"{self._idname} downloaded but LEFT OBFUSCATED")
                 # Things can happen...
                 # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.
+
+    def _write_bytes(self, path: Path, data: bytes):
+        # an extra layer that integrates with image extraction
+
+        if self.name.split("_")[0] == "img":
+            path.with_suffix(".png").write_bytes(self._extract_image(data))
+        else:
+            path.write_bytes(data)
+
+    def _extract_image(self, bundle: bytes) -> bytes:
+        # bytes-to-bytes conversion simplifies the interface
+
+        env = UnityPy.load(bundle)
+        values = list(env.container.values())
+        if len(values) != 1:
+            logger.warning(f"{self._idname} contains {len(values)} objects")
+            return b""
+        img = values[0].read().image
+        buf = BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        return buf.getvalue()
