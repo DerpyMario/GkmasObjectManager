@@ -1,3 +1,8 @@
+"""
+blob.py
+Asset bundles/Resources downloading and deobfuscation.
+"""
+
 from .utils import Logger, determine_subdir
 from .crypt import GkmasDeobfuscator
 from .const import (

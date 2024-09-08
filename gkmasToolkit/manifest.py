@@ -1,3 +1,8 @@
+"""
+manifest.py
+Manifest decryption and export.
+"""
+
 from .utils import Diclist, Logger, ConcurrentDownloader
 from .crypt import AESDecryptor
 from .octodb_pb2 import Database

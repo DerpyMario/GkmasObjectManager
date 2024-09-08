@@ -1,3 +1,8 @@
+"""
+crypt.py
+Manifest decryptor and blob deobfuscator.
+"""
+
 from hashlib import md5
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad

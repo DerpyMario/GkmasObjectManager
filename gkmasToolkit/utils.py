@@ -1,3 +1,8 @@
+"""
+utils.py
+Typing, logging, downloading, and miscellaneous utilities.
+"""
+
 from .const import CHARACTER_ABBREVS
 
 import sys
