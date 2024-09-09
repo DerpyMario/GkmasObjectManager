@@ -9,8 +9,6 @@ This module defines an object-oriented interface for interacting with blob datab
 (hereafter referred to as "manifests", usually named "octocacheevai")
 in the mobile game Gakuen Idolm@ster (https://gakuen.idolmaster-official.jp/).
 
-Note that "blob" includes both asset bundles and multimedia resources.
-
 Features
 --------
 - Decrypt and export octocache as raw ProtoDB, JSON, or CSV

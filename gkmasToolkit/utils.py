@@ -11,8 +11,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def determine_subdir(filename: str) -> str:
-    # Auto organize files into nested subdirectories,
-    # stop at the first "character identifier"
+    """
+    Automatically organize files into nested subdirectories,
+    stopping at the first 'character identifier'.
+    """
 
     filename = ".".join(filename.split(".")[:-1])  # remove extension
     filename = filename.split("-")[0]  # remove suffix
@@ -25,6 +27,19 @@ def determine_subdir(filename: str) -> str:
 
 
 class Diclist(list):
+    """
+    A list of dictionaries, optimized for comparison.
+
+    Methods:
+        __sub__(other: Diclist) -> Diclist:
+            Subtracts another Diclist from this Diclist.
+            Returns the list of elements unique to 'self'.
+        rip_field(targets: list) -> Diclist:
+            Removes selected fields from all dictionaries.
+        diff(other: Diclist, ignored_fields: list) -> Diclist:
+            Compares two Diclists while ignoring selected fields,
+            but **retains all fields** in the reconstructed output.
+    """
 
     def __init__(self, diclist: list):
         super().__init__(diclist)
@@ -54,6 +69,16 @@ class Diclist(list):
 
 
 class Logger(Console):
+    """
+    A rich console logger with custom log levels.
+
+    Methods:
+        info(message: str): Logs an informational message in white text.
+        success(message: str): Logs a success message in green text.
+        warning(message: str): Logs a warning message in yellow text.
+        error(message: str): Logs an error message in red text
+            followed by traceback, and raises an error.
+    """
 
     def __init__(self):
         super().__init__()
@@ -73,13 +98,25 @@ class Logger(Console):
 
 
 class ConcurrentDownloader:
+    """
+    A multithreaded downloader for objects on server.
+
+    Methods:
+        dispatch(blobs: list, path: str):
+            Downloads a list of blobs to a specified path.
+            Executor implicitly calls blob.GkmasResource.download().
+    """
 
     def __init__(self, nworker: int):
         self.nworker = nworker
 
     def dispatch(self, blobs: list, path: str):
+
+        # not initialized in __init__ to avoid memory leak
         self.executor = ThreadPoolExecutor(max_workers=self.nworker)
+
         futures = [self.executor.submit(blob.download, path) for blob in blobs]
         for future in as_completed(futures):
             future.result()
+
         self.executor.shutdown()
