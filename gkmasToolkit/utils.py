@@ -17,13 +17,18 @@ def determine_subdir(filename: str) -> str:
     """
 
     filename = ".".join(filename.split(".")[:-1])  # remove extension
-    filename = filename.split("-")[0]  # remove suffix
     segments = filename.split("_")
+
+    # segments[-1] = segments[-1].split("-")[0]
+    # There used to be a line here that removed the last segment's suffix,
+    # but it's not necessary anymore since the last segment is never
+    # returned as a subdirectory -- even if i == len(segments) - 1.
+
     for i, segment in enumerate(segments):
         if segment in CHARACTER_ABBREVS:
             break
 
-    return "/".join(segments[: i + 1])
+    return "/".join(segments[:i])
 
 
 class Diclist(list):
@@ -62,10 +67,7 @@ class Diclist(list):
         other_rip = other.rip_field(ignored_fields)
 
         # retain complete fields for output
-        raw_lookup = {i: entry for i, entry in enumerate(self)}
-        return Diclist(
-            [raw_lookup[self_rip.index(entry)] for entry in self_rip - other_rip]
-        )
+        return Diclist([self[self_rip.index(entry)] for entry in self_rip - other_rip])
 
 
 class Logger(Console):
