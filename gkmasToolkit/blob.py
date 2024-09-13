@@ -177,33 +177,34 @@ class GkmasAssetBundle(GkmasResource):
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-            self._write_bytes(path, cipher)
+            self._ab2png_and_write_bytes(path, cipher)
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.deobfuscate(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-                self._write_bytes(path, plain)
+                self._ab2png_and_write_bytes(path, plain)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
-                self._write_bytes(path, cipher)
+                path.write_bytes(cipher)
                 logger.warning(f"{self._idname} downloaded but LEFT OBFUSCATED")
                 # Unexpected things may happen...
                 # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.
 
-    def _write_bytes(self, path: Path, data: bytes):
+    def _ab2png_and_write_bytes(self, path: Path, data: bytes):
         """
-        [INTERNAL] Writes the data (in raw bytes) to the specified path.
-        An extra layer that integrates with image extraction
+        [INTERNAL] Wrapper for _ab2png() that attempts to extract an image from an assetbundle.
+        An extra layer for path.write_bytes() that integrates with image extraction
         (triggered only when the assetbundle name starts with 'img_').
         """
         if self.name.split("_")[0] == "img":
-            path.with_suffix(".png").write_bytes(self._extract_image(data))
+            path.with_suffix(".png").write_bytes(self._ab2png(data))
+            logger.success(f"{self._idname} extracted as PNG")
         else:
             path.write_bytes(data)
 
-    def _extract_image(self, bundle: bytes) -> bytes:
+    def _ab2png(self, bundle: bytes) -> bytes:
         """
         [INTERNAL] Extracts a single image from the assetbundle's container.
         Raises a warning if the bundle contains multiple objects.
