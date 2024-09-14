@@ -8,6 +8,7 @@ from .const import CHARACTER_ABBREVS
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import re
 
 
 def determine_subdir(filename: str) -> str:
@@ -17,13 +18,18 @@ def determine_subdir(filename: str) -> str:
     """
 
     filename = ".".join(filename.split(".")[:-1])  # remove extension
+    haschar = False
 
     for char in CHARACTER_ABBREVS:
         if char in filename:
             filename = filename.split(char)[0]  # ignore everything after 'char'
+            haschar = True
             break
 
-    return filename[:-1].replace("_", "/")  # trim trailing '_' or '-'
+    if haschar:
+        return "/".join(filename[:-1].split("_"))  # trim trailing '_' or '-'
+    else:
+        return "/".join(filename.split("_")[:-1])  # merge the last level
 
 
 class Diclist(list):
