@@ -5,10 +5,11 @@ Typing, logging, downloading, and miscellaneous utilities.
 
 from .const import CHARACTER_ABBREVS
 
+import re
+import os
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import re
 
 
 def determine_subdir(filename: str) -> str:
@@ -18,18 +19,17 @@ def determine_subdir(filename: str) -> str:
     """
 
     filename = ".".join(filename.split(".")[:-1])  # remove extension
-    haschar = False
+
+    # Ignore everything after the first number after '-' or '_'
+    filename = re.split(r"[-_]\d", filename)[0]
 
     for char in CHARACTER_ABBREVS:
         if char in filename:
-            filename = filename.split(char)[0]  # ignore everything after 'char'
-            haschar = True
+            # Ignore everything after 'char', and trim trailing '_' or '-'
+            filename = filename.split(char)[0][:-1]
             break
 
-    if haschar:
-        return "/".join(filename[:-1].split("_"))  # trim trailing '_' or '-'
-    else:
-        return "/".join(filename.split("_")[:-1])  # merge the last level
+    return os.path.join(*filename.split("_"))
 
 
 class Diclist(list):
@@ -105,20 +105,21 @@ class ConcurrentDownloader:
     A multithreaded downloader for objects on server.
 
     Methods:
-        dispatch(blobs: list, path: str):
+        dispatch(blobs: list, **kwargs):
             Downloads a list of blobs to a specified path.
-            Executor implicitly calls blob.GkmasResource.download().
+            Executor implicitly calls blob.GkmasResource.download() with **kwargs.
     """
 
     def __init__(self, nworker: int):
         self.nworker = nworker
 
-    def dispatch(self, blobs: list, path: str):
+    def dispatch(self, blobs: list, **kwargs):
+        # don't use *args here to avoid fixed order
 
         # not initialized in __init__ to avoid memory leak
         self.executor = ThreadPoolExecutor(max_workers=self.nworker)
 
-        futures = [self.executor.submit(blob.download, path) for blob in blobs]
+        futures = [self.executor.submit(blob.download, **kwargs) for blob in blobs]
         for future in as_completed(futures):
             future.result()
 

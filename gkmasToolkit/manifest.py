@@ -46,6 +46,8 @@ class GkmasManifest:
             *criteria: str,
             path: str = DEFAULT_DOWNLOAD_PATH,
             nworker: int = DEFAULT_DOWNLOAD_NWORKER,
+            categorize: bool = True,
+            extract_img: bool = True,
         ) -> None:
             Downloads the regex-specified assetbundles/resources to the specified path.
         export(path: str) -> None:
@@ -170,6 +172,8 @@ class GkmasManifest:
         *criteria: str,
         path: str = DEFAULT_DOWNLOAD_PATH,
         nworker: int = DEFAULT_DOWNLOAD_NWORKER,
+        categorize: bool = True,
+        extract_img: bool = True,
     ):
         """
         Downloads the regex-specified assetbundles/resources to the specified path.
@@ -181,6 +185,10 @@ class GkmasManifest:
                 *WARNING: Behavior is undefined if the path points to an definite file (with extension).*
             nworker (int) = DEFAULT_DOWNLOAD_NWORKER: Number of concurrent download workers.
                 Defaults to multiprocessing.cpu_count().
+            categorize (bool) = True: Whether to categorize the downloaded blobs into subdirectories.
+                If False, all blobs are downloaded to the specified 'path' in a flat structure.
+            extract_img (bool) = True: Whether to extract images from assetbundles of type 'img'.
+                If False, 'img_.*\\.unity3d' are downloaded as is.
         """
 
         blobs = []
@@ -199,7 +207,12 @@ class GkmasManifest:
                     ]
                 )
 
-        ConcurrentDownloader(nworker).dispatch(blobs, path)
+        ConcurrentDownloader(nworker).dispatch(
+            blobs,
+            path=path,
+            categorize=categorize,
+            extract_img=extract_img,
+        )
 
     # ------------ Export ------------
 

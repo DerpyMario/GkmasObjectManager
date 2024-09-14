@@ -36,7 +36,11 @@ class GkmasResource:
         state (str): Resource state in manifest (ADD/UPDATE), unused for now.
 
     Methods:
-        download(path: str = DEFAULT_DOWNLOAD_PATH) -> None:
+        download(
+            path: str = DEFAULT_DOWNLOAD_PATH,
+            categorize: bool = True,
+            extract_img: bool = True,
+        ) -> None:
             Downloads the resource to the specified path.
     """
 
@@ -61,16 +65,24 @@ class GkmasResource:
     def __repr__(self):
         return f"<GkmasResource {self._idname}>"
 
-    def download(self, path: str = DEFAULT_DOWNLOAD_PATH):
+    def download(
+        self,
+        path: str = DEFAULT_DOWNLOAD_PATH,
+        categorize: bool = True,
+        extract_img: bool = True,
+    ):
         """
         Downloads the resource to the specified path.
 
         Args:
             path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the resource name.
+            categorize (bool) = True: Whether to put the downloaded blob into subdirectories.
+                If False, the blob is directly downloaded to the specified 'path'.
+            extract_img (bool) = True: IGNORED. PRESERVED FOR COMPATIBILITY WITH CONCURRENT DOWNLOADER.
         """
 
-        path = self._download_path(path)
+        path = self._download_path(path, categorize)
         if path.exists():
             logger.warning(f"{self._idname} already exists")
             return
@@ -79,7 +91,7 @@ class GkmasResource:
         path.write_bytes(plain)
         logger.success(f"{self._idname} downloaded")
 
-    def _download_path(self, path: str) -> Path:
+    def _download_path(self, path: str, categorize: bool) -> Path:
         """
         [INTERNAL] Refines the download path based on user input.
         Appends subdirectories unless a definite file path (with suffix) is given.
@@ -88,13 +100,17 @@ class GkmasResource:
         Example:
             path = 'out/' and self.name = 'type_subtype-detail.ext'
             will be refined to 'out/type/subtype/type_subtype-detail.ext'
+            if categorize is True, and 'out/type_subtype-detail.ext' otherwise.
         """
 
         # don't expect the client to import pathlib in advance
         path = Path(path)
 
         if path.suffix == "":  # is directory
-            path = path / determine_subdir(self.name) / self.name
+            if categorize:
+                path = path / determine_subdir(self.name) / self.name
+            else:
+                path = path / self.name
 
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
@@ -137,7 +153,11 @@ class GkmasAssetBundle(GkmasResource):
         crc (int): CRC checksum, unused for now (since scheme is unknown).
 
     Methods:
-        download(path: str = DEFAULT_DOWNLOAD_PATH) -> None:
+        download(
+            path: str = DEFAULT_DOWNLOAD_PATH,
+            categorize: bool = True,
+            extract_img: bool = True,
+        ) -> None:
             Downloads and deobfuscates the assetbundle to the specified path.
             Also extracts a single image from each bundle with type 'img'.
     """
@@ -160,16 +180,25 @@ class GkmasAssetBundle(GkmasResource):
     def __repr__(self):
         return f"<GkmasAssetBundle {self._idname}>"
 
-    def download(self, path: str = DEFAULT_DOWNLOAD_PATH):
+    def download(
+        self,
+        path: str = DEFAULT_DOWNLOAD_PATH,
+        categorize: bool = True,
+        extract_img: bool = True,
+    ):
         """
         Downloads and deobfuscates the assetbundle to the specified path.
 
         Args:
             path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the assetbundle name.
+            categorize (bool) = True: Whether to put the downloaded blob into subdirectories.
+                If False, the blob is directly downloaded to the specified 'path'.
+            extract_img (bool) = True: Whether to extract a single image from assetbundles of type 'img'.
+                If False, 'img_.*\\.unity3d' is downloaded as is.
         """
 
-        path = self._download_path(path)
+        path = self._download_path(path, categorize)
         if path.exists():
             logger.warning(f"{self._idname} already exists")
             return
@@ -177,13 +206,13 @@ class GkmasAssetBundle(GkmasResource):
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-            self._ab2png_and_write_bytes(path, cipher)
+            self._ab2png_and_write_bytes(path, cipher, extract_img)
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.deobfuscate(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-                self._ab2png_and_write_bytes(path, plain)
+                self._ab2png_and_write_bytes(path, plain, extract_img)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
                 path.write_bytes(cipher)
@@ -192,13 +221,13 @@ class GkmasAssetBundle(GkmasResource):
                 # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.
 
-    def _ab2png_and_write_bytes(self, path: Path, data: bytes):
+    def _ab2png_and_write_bytes(self, path: Path, data: bytes, extract_img: bool):
         """
         [INTERNAL] Wrapper for _ab2png() that attempts to extract an image from an assetbundle.
         An extra layer for path.write_bytes() that integrates with image extraction
-        (triggered only when the assetbundle name starts with 'img_').
+        (triggered only when the assetbundle name starts with 'img_' and extract_img is True).
         """
-        if self.name.split("_")[0] == "img":
+        if self.name.split("_")[0] == "img" and extract_img:
             path.with_suffix(".png").write_bytes(self._ab2png(data))
             logger.success(f"{self._idname} extracted as PNG")
         else:
