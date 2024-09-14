@@ -17,18 +17,13 @@ def determine_subdir(filename: str) -> str:
     """
 
     filename = ".".join(filename.split(".")[:-1])  # remove extension
-    segments = filename.split("_")
 
-    # segments[-1] = segments[-1].split("-")[0]
-    # There used to be a line here that removed the last segment's suffix,
-    # but it's not necessary anymore since the last segment is never
-    # returned as a subdirectory -- even if i == len(segments) - 1.
-
-    for i, segment in enumerate(segments):
-        if segment in CHARACTER_ABBREVS:
+    for char in CHARACTER_ABBREVS:
+        if char in filename:
+            filename = filename.split(char)[0]  # ignore everything after 'char'
             break
 
-    return "/".join(segments[:i])
+    return filename[:-1].replace("_", "/")  # trim trailing '_' or '-'
 
 
 class Diclist(list):
