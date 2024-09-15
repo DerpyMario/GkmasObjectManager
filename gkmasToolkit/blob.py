@@ -71,7 +71,8 @@ class GkmasResource:
         path: str = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
-        resize: IMG_RESIZE_ARGTYPE = None,
+        img_format: str = "png",
+        img_resize: IMG_RESIZE_ARGTYPE = None,
     ):
         """
         Downloads the resource to the specified path.
@@ -83,7 +84,9 @@ class GkmasResource:
                 If False, the blob is directly downloaded to the specified 'path'.
             extract_img (bool) = True:
                 IGNORED. PRESERVED FOR COMPATIBILITY WITH CONCURRENT DOWNLOADER.
-            resize (Union[None, str, Tuple[int, int]]) = None:
+            img_format (str) = 'png':
+                IGNORED. PRESERVED FOR COMPATIBILITY WITH CONCURRENT DOWNLOADER.
+            img_resize (Union[None, str, Tuple[int, int]]) = None:
                 IGNORED. PRESERVED FOR COMPATIBILITY WITH CONCURRENT DOWNLOADER.
         """
 
@@ -162,7 +165,8 @@ class GkmasAssetBundle(GkmasResource):
             path: str = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
             extract_img: bool = True,
-            resize: Union[None, str, Tuple[int, int]] = None,
+            img_format: str = "png",
+            img_resize: Union[None, str, Tuple[int, int]] = None,
         ) -> None:
             Downloads and deobfuscates the assetbundle to the specified path.
             Also extracts a single image from each bundle with type 'img'.
@@ -191,7 +195,8 @@ class GkmasAssetBundle(GkmasResource):
         path: str = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
-        resize: IMG_RESIZE_ARGTYPE = None,
+        img_format: str = "png",
+        img_resize: IMG_RESIZE_ARGTYPE = None,
     ):
         """
         Downloads and deobfuscates the assetbundle to the specified path.
@@ -203,7 +208,10 @@ class GkmasAssetBundle(GkmasResource):
                 If False, the blob is directly downloaded to the specified 'path'.
             extract_img (bool) = True: Whether to extract a single image from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' is downloaded as is.
-            resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
+            img_format (str) = 'png': Image format for extraction. Case-insensitive.
+                Effective only when 'extract_img' is True.
+                Valid options are checked by PIL.Image.save() and are not enumerated.
+            img_resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
                 If None, image is downloaded as is.
                 If str, string must contain exactly one ':' and image is resized to the specified ratio.
                 If Tuple[int, int], image is resized to the specified exact dimensions.
@@ -217,13 +225,17 @@ class GkmasAssetBundle(GkmasResource):
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-            self._ab2png_and_write_bytes(path, cipher, extract_img, resize)
+            self._ab2png_and_write_bytes(
+                path, cipher, extract_img, img_format, img_resize
+            )
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.deobfuscate(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-                self._ab2png_and_write_bytes(path, plain, extract_img, resize)
+                self._ab2png_and_write_bytes(
+                    path, plain, extract_img, img_format, img_resize
+                )
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
                 path.write_bytes(cipher)
@@ -237,20 +249,29 @@ class GkmasAssetBundle(GkmasResource):
         path: Path,
         data: bytes,
         extract_img: bool,
-        resize: IMG_RESIZE_ARGTYPE,
+        img_format: str,
+        img_resize: IMG_RESIZE_ARGTYPE,
     ):
         """
         [INTERNAL] Wrapper for _ab2png() that attempts to extract an image from an assetbundle.
         An extra layer for path.write_bytes() that integrates with image extraction
         (triggered only when the assetbundle name starts with 'img_' and extract_img is True).
         """
+        img_format = img_format.lower()
         if self.name.split("_")[0] == "img" and extract_img:
-            path.with_suffix(".png").write_bytes(self._ab2png(data, resize))
-            logger.success(f"{self._idname} extracted as PNG")
+            path.with_suffix(f".{img_format}").write_bytes(
+                self._ab2png(data, img_format, img_resize)
+            )
+            logger.success(f"{self._idname} extracted as {img_format.upper()}")
         else:
             path.write_bytes(data)
 
-    def _ab2png(self, bundle: bytes, resize: IMG_RESIZE_ARGTYPE) -> bytes:
+    def _ab2png(
+        self,
+        bundle: bytes,
+        img_format: str,
+        img_resize: IMG_RESIZE_ARGTYPE,
+    ) -> bytes:
         """
         [INTERNAL] Extracts a single image from the assetbundle's container.
         Raises a warning if the bundle contains multiple objects.
@@ -264,12 +285,12 @@ class GkmasAssetBundle(GkmasResource):
             logger.warning(f"{self._idname} contains {len(values)} objects")
             return b""
         img = values[0].read().image
-        if resize:
-            if type(resize) == str:
-                new_size = resize_by_ratio(img.size, resize)
+        if img_resize:
+            if type(img_resize) == str:
+                new_size = resize_by_ratio(img.size, img_resize)
             else:
-                new_size = resize
+                new_size = img_resize
             img = img.resize(new_size, Image.LANCZOS)
         buf = BytesIO()
-        img.save(buf, format="PNG")
+        img.save(buf, format=img_format, quality=100)
         return buf.getvalue()

@@ -49,7 +49,8 @@ class GkmasManifest:
             path: str = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
             extract_img: bool = True,
-            resize: Union[None, str, Tuple[int, int]] = None,
+            img_format: str = "png",
+            img_resize: Union[None, str, Tuple[int, int]] = None,
         ) -> None:
             Downloads the regex-specified assetbundles/resources to the specified path.
         export(path: str) -> None:
@@ -176,7 +177,8 @@ class GkmasManifest:
         path: str = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
-        resize: IMG_RESIZE_ARGTYPE = None,
+        img_format: str = "png",
+        img_resize: IMG_RESIZE_ARGTYPE = None,
     ):
         """
         Downloads the regex-specified assetbundles/resources to the specified path.
@@ -192,7 +194,10 @@ class GkmasManifest:
                 If False, all blobs are downloaded to the specified 'path' in a flat structure.
             extract_img (bool) = True: Whether to extract images from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' are downloaded as is.
-            resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
+            img_format (str) = 'png': Image format for extraction. Case-insensitive.
+                Effective only when 'extract_img' is True.
+                Valid options are checked by PIL.Image.save() and are not enumerated.
+            img_resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
                 If None, images are downloaded as is.
                 If str, string must contain exactly one ':' and images are resized to the specified ratio.
                     Refer to utils.resize_by_ratio() for information on resize modes.
@@ -220,7 +225,8 @@ class GkmasManifest:
             path=path,
             categorize=categorize,
             extract_img=extract_img,
-            resize=resize,
+            img_format=img_format,
+            img_resize=img_resize,
         )
 
     # ------------ Export ------------
