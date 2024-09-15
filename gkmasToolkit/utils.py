@@ -3,95 +3,9 @@ utils.py
 Typing, logging, downloading, and miscellaneous utilities.
 """
 
-from .const import CHARACTER_ABBREVS
-
-import re
-import os
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Tuple
-
-
-round = lambda x: int(x + 0.5)  # round to nearest integer
-
-
-def resize_by_ratio(
-    img: Image.Image,
-    ratio: str,
-    mode="maximize",
-) -> Image.Image:
-    """
-    Resize an image based on a given ratio.
-
-    Args:
-        img (Image.Image): The original image object.
-        resize (Union[None, str, Tuple[int, int]]): Image resizing argument.
-        mode (str) = 'maximize': The resizing mode (terms borrowed from PowerPoint).
-            'maximize': Enlarges the image to fit the ratio.
-            'ensure_fit': Shrinks the image to fit the ratio.
-            'preserve_size': Maintains approximately the same pixel count.
-
-    Example:
-        Given ratio = '4:3', an image of size (1920, 1080) is resized to:
-        - (1920, 1440) in 'maximize' mode,
-        - (1440, 1080) in 'ensure_fit' mode, and
-        - (1663, 1247) in 'preserve_size' mode.
-    """
-
-    ratio = ratio.split(":")
-    if len(ratio) != 2:
-        raise ValueError("Invalid ratio format. Use 'width:height'.")
-
-    ratio = (float(ratio[0]), float(ratio[1]))
-    if ratio[0] <= 0 or ratio[1] <= 0:
-        raise ValueError("Invalid ratio values. Must be positive.")
-
-    ratio = ratio[0] / ratio[1]
-    w, h = img.size
-    ratio_old = w / h
-    if ratio_old == ratio:
-        return img  # untouched
-
-    w_new, h_new = w, h
-    if mode == "maximize":
-        if ratio_old > ratio:
-            h_new = w / ratio
-        else:
-            w_new = h * ratio
-    elif mode == "ensure_fit":
-        if ratio_old > ratio:
-            h_new = w / ratio
-        else:
-            w_new = h * ratio
-    elif mode == "preserve_size":
-        pixel_count = w * h
-        h_new = (pixel_count / ratio) ** 0.5
-        w_new = h_new * ratio
-    else:
-        raise ValueError("Invalid mode (maximize/ensure_fit/preserve_size).")
-
-    return img.resize((round(w_new), round(h_new)), Image.LANCZOS)
-
-
-def determine_subdir(filename: str) -> str:
-    """
-    Automatically organize files into nested subdirectories,
-    stopping at the first 'character identifier'.
-    """
-
-    filename = ".".join(filename.split(".")[:-1])  # remove extension
-
-    # Ignore everything after the first number after '-' or '_'
-    filename = re.split(r"[-_]\d", filename)[0]
-
-    for char in CHARACTER_ABBREVS:
-        if char in filename:
-            # Ignore everything after 'char', and trim trailing '_' or '-'
-            filename = filename.split(char)[0][:-1]
-            break
-
-    return os.path.join(*filename.split("_"))
 
 
 class Diclist(list):

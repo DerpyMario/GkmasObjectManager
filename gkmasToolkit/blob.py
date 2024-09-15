@@ -3,9 +3,10 @@ blob.py
 Asset bundles/Resources downloading and deobfuscation.
 """
 
-from .utils import Logger, determine_subdir, resize_by_ratio
+from .utils import Logger
 from .crypt import GkmasDeobfuscator
 from .const import (
+    CHARACTER_ABBREVS,
     DEFAULT_DOWNLOAD_PATH,
     GKMAS_OBJECT_SERVER,
     GKMAS_UNITY_VERSION,
@@ -13,10 +14,13 @@ from .const import (
     IMG_RESIZE_ARGTYPE,
 )
 
-import UnityPy
+import os
+import re
 import requests
+import UnityPy
 from hashlib import md5
 from pathlib import Path
+from typing import Tuple
 from PIL import Image
 
 
@@ -115,12 +119,31 @@ class GkmasResource:
 
         if path.suffix == "":  # is directory
             if categorize:
-                path = path / determine_subdir(self.name) / self.name
+                path = path / self._determine_subdir(self.name) / self.name
             else:
                 path = path / self.name
 
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
+
+    def _determine_subdir(filename: str) -> str:
+        """
+        [INTERNAL] Automatically organize files into nested subdirectories,
+        stopping at the first 'character identifier'.
+        """
+
+        filename = ".".join(filename.split(".")[:-1])  # remove extension
+
+        # Ignore everything after the first number after '-' or '_'
+        filename = re.split(r"[-_]\d", filename)[0]
+
+        for char in CHARACTER_ABBREVS:
+            if char in filename:
+                # Ignore everything after 'char', and trim trailing '_' or '-'
+                filename = filename.split(char)[0][:-1]
+                break
+
+        return os.path.join(*filename.split("_"))
 
     def _download_bytes(self) -> bytes:
         """
@@ -266,9 +289,66 @@ class GkmasAssetBundle(GkmasResource):
         img = values[0].read().image
         if img_resize:
             if type(img_resize) == str:
-                img = resize_by_ratio(img, img_resize)
-            else:
-                img = img.resize(img_resize, Image.LANCZOS)
+                img_resize = self._determine_new_size(img.size, ratio=img_resize)
+            img = img.resize(img_resize, Image.LANCZOS)
 
         img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
         logger.success(f"{self._idname} extracted as {img_format.upper()}")
+
+    def _determine_new_size(
+        size: Tuple[int, int],
+        ratio: str,
+        mode: str = Union["maximize", "ensure_fit", "preserve_size"],
+    ) -> Tuple[int, int]:
+        """
+        Resize an image based on a given ratio.
+
+        Args:
+            img (Image.Image): The original image object.
+            resize (Union[None, str, Tuple[int, int]]): Image resizing argument.
+            mode (str) = 'maximize': The resizing mode (terms borrowed from PowerPoint).
+                'maximize': Enlarges the image to fit the ratio.
+                'ensure_fit': Shrinks the image to fit the ratio.
+                'preserve_size': Maintains approximately the same pixel count.
+
+        Example:
+            Given ratio = '4:3', an image of size (1920, 1080) is resized to:
+            - (1920, 1440) in 'maximize' mode,
+            - (1440, 1080) in 'ensure_fit' mode, and
+            - (1663, 1247) in 'preserve_size' mode.
+        """
+
+        ratio = ratio.split(":")
+        if len(ratio) != 2:
+            raise ValueError("Invalid ratio format. Use 'width:height'.")
+
+        ratio = (float(ratio[0]), float(ratio[1]))
+        if ratio[0] <= 0 or ratio[1] <= 0:
+            raise ValueError("Invalid ratio values. Must be positive.")
+
+        ratio = ratio[0] / ratio[1]
+        w, h = img.size
+        ratio_old = w / h
+        if ratio_old == ratio:
+            return img  # untouched
+
+        w_new, h_new = w, h
+        if mode == "maximize":
+            if ratio_old > ratio:
+                h_new = w / ratio
+            else:
+                w_new = h * ratio
+        elif mode == "ensure_fit":
+            if ratio_old > ratio:
+                h_new = w / ratio
+            else:
+                w_new = h * ratio
+        elif mode == "preserve_size":
+            pixel_count = w * h
+            h_new = (pixel_count / ratio) ** 0.5
+            w_new = h_new * ratio
+        else:
+            raise ValueError("Invalid mode (maximize/ensure_fit/preserve_size).")
+
+        round = lambda x: int(x + 0.5)  # round to nearest integer
+        return img.resize((round(w_new), round(h_new)), Image.LANCZOS)
