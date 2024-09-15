@@ -184,12 +184,11 @@ class GkmasManifest:
             extract_img (bool) = True: Whether to extract images from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' are downloaded as is.
             img_format (str) = 'png': Image format for extraction. Case-insensitive.
-                Effective only when 'extract_img' is True.
+                Effective only when 'extract_img' is True. Format must support RGBA mode.
                 Valid options are checked by PIL.Image.save() and are not enumerated.
             img_resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
                 If None, images are downloaded as is.
                 If str, string must contain exactly one ':' and images are resized to the specified ratio.
-                    Refer to utils.resize_by_ratio() for information on resize modes.
                 If Tuple[int, int], images are resized to the specified exact dimensions.
         """
 
@@ -235,7 +234,8 @@ class GkmasManifest:
 
         path = Path(path)
 
-        if path.suffix == "":  # used to be path.is_dir()
+        if path.suffix == "":
+            # used to be path.is_dir(), but it also returns False for non-existent dirs
             path.mkdir(parents=True, exist_ok=True)
             self._export_protodb(path / f"manifest_v{self.revision}")
             self._export_json(path / f"manifest_v{self.revision}.json")

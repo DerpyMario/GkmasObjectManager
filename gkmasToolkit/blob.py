@@ -14,7 +14,6 @@ from .const import (
     IMG_RESIZE_ARGTYPE,
 )
 
-import os
 import re
 import requests
 import UnityPy
@@ -39,6 +38,7 @@ class GkmasResource:
         size (int): Resource size in bytes, used for integrity check.
         md5 (str): MD5 hash of the resource, used for integrity check.
         state (str): Resource state in manifest (ADD/UPDATE), unused for now.
+            Other possible states of NONE, LATEST, and DELETE have not yet been observed.
 
     Methods:
         download(
@@ -102,11 +102,14 @@ class GkmasResource:
         path.write_bytes(plain)
         logger.success(f"{self._idname} downloaded")
 
-    def _download_path(self, path: str, categorize: bool) -> Path:
+    def _download_path(self, path: Union[str, Path], categorize: bool) -> Path:
         """
         [INTERNAL] Refines the download path based on user input.
         Appends subdirectories unless a definite file path (with suffix) is given.
         Delimiter is hardcoded as '_'.
+
+        path is not necessarily of type Path,
+        since we don't expect the client to import pathlib in advance.
 
         Example:
             path = 'out/' and self.name = 'type_subtype-detail.ext'
@@ -114,7 +117,6 @@ class GkmasResource:
             if categorize is True, and 'out/type_subtype-detail.ext' otherwise.
         """
 
-        # don't expect the client to import pathlib in advance
         path = Path(path)
 
         if path.suffix == "":  # is directory
@@ -126,7 +128,7 @@ class GkmasResource:
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _determine_subdir(self, filename: str) -> str:
+    def _determine_subdir(self, filename: str) -> Path:
         """
         [INTERNAL] Automatically organize files into nested subdirectories,
         stopping at the first 'character identifier'.
@@ -143,7 +145,7 @@ class GkmasResource:
                 filename = filename.split(char)[0][:-1]
                 break
 
-        return os.path.join(*filename.split("_"))
+        return Path(*filename.split("_"))
 
     def _download_bytes(self) -> bytes:
         """
@@ -157,18 +159,16 @@ class GkmasResource:
         # We're being strict here by aborting the download process
         # if any of the sanity checks fail, in order to avoid corrupted output.
         # The client can always retry (just ignore the "file already exists" warnings).
+        # Note: Returning empty bytes is unnecessary, since logger.error() raises an exception.
 
         if response.status_code != 200:
             logger.error(f"{self._idname} download failed")
-            return b""
 
         if len(response.content) != self.size:
             logger.error(f"{self._idname} has invalid size")
-            return b""
 
         if md5(response.content).hexdigest() != self.md5:
             logger.error(f"{self._idname} has invalid MD5 hash")
-            return b""
 
         return response.content
 
@@ -273,7 +273,7 @@ class GkmasAssetBundle(GkmasResource):
         """
         [INTERNAL] Attempts to extract a single image from the assetbundle's container.
         Triggered only when the assetbundle name starts with 'img_' AND extract_img is True.
-        Raises a warning if the bundle contains multiple objects.
+        Raises a warning and falls back to raw dump if the bundle contains multiple objects.
         """
 
         if self.name.split("_")[0] != "img" or not extract_img:
@@ -284,7 +284,8 @@ class GkmasAssetBundle(GkmasResource):
         values = list(env.container.values())
         if len(values) != 1:
             logger.warning(f"{self._idname} contains {len(values)} objects")
-            return b""
+            path.write_bytes(data)
+            return
 
         img = values[0].read().image
         if img_resize:
@@ -299,7 +300,7 @@ class GkmasAssetBundle(GkmasResource):
         self,
         size: Tuple[int, int],
         ratio: str,
-        mode: Union["maximize", "ensure_fit", "preserve_size"] = "maximize",
+        mode: Union["maximize", "ensure_fit", "preserve_npixel"] = "maximize",
     ) -> Tuple[int, int]:
         """
         [INTERNAL] Determines the new size of an image based on a given ratio.
@@ -307,12 +308,12 @@ class GkmasAssetBundle(GkmasResource):
         mode can be one of (terms borrowed from PowerPoint):
         - 'maximize': Enlarges the image to fit the ratio.
         - 'ensure_fit': Shrinks the image to fit the ratio.
-        - 'preserve_size': Maintains approximately the same pixel count.
+        - 'preserve_npixel': Maintains approximately the same pixel count.
 
         Example: Given ratio = '4:3', an image of size (1920, 1080) is resized to:
         - (1920, 1440) in 'maximize' mode,
         - (1440, 1080) in 'ensure_fit' mode, and
-        - (1663, 1247) in 'preserve_size' mode.
+        - (1663, 1247) in 'preserve_npixel' mode.
         """
 
         ratio = ratio.split(":")
@@ -330,7 +331,7 @@ class GkmasAssetBundle(GkmasResource):
             return size
 
         w_new, h_new = w, h
-        if mode == "preserve_size":
+        if mode == "preserve_npixel":
             pixel_count = w * h
             h_new = (pixel_count / ratio) ** 0.5
             w_new = h_new * ratio
