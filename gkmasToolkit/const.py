@@ -4,6 +4,7 @@ Module-wide constants (macro equivalents).
 """
 
 import multiprocessing
+from typing import Union, Tuple
 
 
 # manifest decrypt
@@ -44,3 +45,4 @@ CHARACTER_ABBREVS = [
 # blob deobfuscate
 GKMAS_UNITY_VERSION = "2022.3.21f1"
 UNITY_SIGNATURE = b"UnityFS"
+IMG_RESIZE_ARGTYPE = Union[None, str, Tuple[int, int]]

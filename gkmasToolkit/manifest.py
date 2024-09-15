@@ -11,8 +11,9 @@ from .const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
     DICLIST_IGNORED_FIELDS,
-    DEFAULT_DOWNLOAD_PATH,
     DEFAULT_DOWNLOAD_NWORKER,
+    DEFAULT_DOWNLOAD_PATH,
+    IMG_RESIZE_ARGTYPE,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
     CSV_COLUMNS,
@@ -44,10 +45,11 @@ class GkmasManifest:
     Methods:
         download(
             *criteria: str,
-            path: str = DEFAULT_DOWNLOAD_PATH,
             nworker: int = DEFAULT_DOWNLOAD_NWORKER,
+            path: str = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
             extract_img: bool = True,
+            resize: Union[None, str, Tuple[int, int]] = None,
         ) -> None:
             Downloads the regex-specified assetbundles/resources to the specified path.
         export(path: str) -> None:
@@ -170,10 +172,11 @@ class GkmasManifest:
     def download(
         self,
         *criteria: str,
-        path: str = DEFAULT_DOWNLOAD_PATH,
         nworker: int = DEFAULT_DOWNLOAD_NWORKER,
+        path: str = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
+        resize: IMG_RESIZE_ARGTYPE = None,
     ):
         """
         Downloads the regex-specified assetbundles/resources to the specified path.
@@ -181,14 +184,19 @@ class GkmasManifest:
         Args:
             *criteria (str): Regex patterns of assetbundle/resource names.
                 Allowed special tokens are const.ALL_ASSETBUNDLES and const.ALL_RESOURCES.
-            path (str) = DEFAULT_DOWNLOAD_PATH: A directory to which the blobs are downloaded.
-                *WARNING: Behavior is undefined if the path points to an definite file (with extension).*
             nworker (int) = DEFAULT_DOWNLOAD_NWORKER: Number of concurrent download workers.
                 Defaults to multiprocessing.cpu_count().
+            path (str) = DEFAULT_DOWNLOAD_PATH: A directory to which the blobs are downloaded.
+                *WARNING: Behavior is undefined if the path points to an definite file (with extension).*
             categorize (bool) = True: Whether to categorize the downloaded blobs into subdirectories.
                 If False, all blobs are downloaded to the specified 'path' in a flat structure.
             extract_img (bool) = True: Whether to extract images from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' are downloaded as is.
+            resize (Union[None, str, Tuple[int, int]]) = None: Image resizing argument.
+                If None, images are downloaded as is.
+                If str, string must contain exactly one ':' and images are resized to the specified ratio.
+                    Refer to utils.resize_by_ratio() for information on resize modes.
+                If Tuple[int, int], images are resized to the specified exact dimensions.
         """
 
         blobs = []
@@ -212,6 +220,7 @@ class GkmasManifest:
             path=path,
             categorize=categorize,
             extract_img=extract_img,
+            resize=resize,
         )
 
     # ------------ Export ------------

@@ -10,6 +10,64 @@ import os
 import sys
 from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Tuple
+
+
+round = lambda x: int(x + 0.5)  # round to nearest integer
+
+
+def resize_by_ratio(
+    size: Tuple[int, int],
+    ratio: str,
+    mode="maximize",
+) -> Tuple[int, int]:
+    """
+    Determines the new size of an image based on a given ratio.
+
+    Args:
+        size (Tuple[int, int]): The original size of the image.
+        ratio (str): The target ratio in the format 'width:height'.
+        mode (str) = 'maximize': The resizing mode (terms borrowed from PowerPoint).
+            'maximize': Enlarges the image to fit the ratio.
+            'ensure_fit': Shrinks the image to fit the ratio.
+            'preserve_size': Maintains approximately the same pixel count.
+
+    Example:
+        size = (1920, 1080), ratio = '4:3' gives
+        - (1920, 1440) in 'maximize' mode,
+        - (1440, 1080) in 'ensure_fit' mode, and
+        - (1663, 1247) in 'preserve_size' mode.
+    """
+
+    ratio = ratio.split(":")
+    if len(ratio) != 2:
+        raise ValueError("Invalid ratio format. Use 'width:height'.")
+
+    ratio = (float(ratio[0]), float(ratio[1]))
+    if ratio[0] <= 0 or ratio[1] <= 0:
+        raise ValueError("Invalid ratio values. Must be positive.")
+
+    ratio = ratio[0] / ratio[1]
+    ratio_old = size[0] / size[1]
+    if ratio_old == ratio:
+        return size  # untouched
+
+    if mode == "maximize":
+        if ratio_old > ratio:
+            return (size[0], round(size[0] / ratio))
+        else:
+            return (round(size[1] * ratio), size[1])
+    elif mode == "ensure_fit":
+        if ratio_old > ratio:
+            return (round(size[1] * ratio), size[1])
+        else:
+            return (size[0], round(size[0] / ratio))
+    elif mode == "preserve_size":
+        pixel_count = size[0] * size[1]
+        h_new = (pixel_count / ratio) ** 0.5
+        return (round(h_new * ratio), round(h_new))
+    else:
+        raise ValueError("Invalid mode (maximize/ensure_fit/preserve_size).")
 
 
 def determine_subdir(filename: str) -> str:
