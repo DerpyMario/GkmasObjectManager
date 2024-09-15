@@ -15,7 +15,6 @@ from .const import (
 
 import UnityPy
 import requests
-from io import BytesIO
 from hashlib import md5
 from pathlib import Path
 from PIL import Image
@@ -225,17 +224,13 @@ class GkmasAssetBundle(GkmasResource):
         cipher = self._download_bytes()
 
         if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-            self._ab2png_and_write_bytes(
-                path, cipher, extract_img, img_format, img_resize
-            )
+            self._export_img(path, cipher, extract_img, img_format, img_resize)
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.deobfuscate(cipher)
             if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
-                self._ab2png_and_write_bytes(
-                    path, plain, extract_img, img_format, img_resize
-                )
+                self._export_img(path, plain, extract_img, img_format, img_resize)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
                 path.write_bytes(cipher)
@@ -244,7 +239,7 @@ class GkmasAssetBundle(GkmasResource):
                 # So unlike _download_bytes() in the parent class,
                 # here we don't raise an error and abort.
 
-    def _ab2png_and_write_bytes(
+    def _export_img(
         self,
         path: Path,
         data: bytes,
@@ -253,37 +248,21 @@ class GkmasAssetBundle(GkmasResource):
         img_resize: IMG_RESIZE_ARGTYPE,
     ):
         """
-        [INTERNAL] Wrapper for _ab2png() that attempts to extract an image from an assetbundle.
-        An extra layer for path.write_bytes() that integrates with image extraction
-        (triggered only when the assetbundle name starts with 'img_' and extract_img is True).
-        """
-        img_format = img_format.lower()
-        if self.name.split("_")[0] == "img" and extract_img:
-            path.with_suffix(f".{img_format}").write_bytes(
-                self._ab2png(data, img_format, img_resize)
-            )
-            logger.success(f"{self._idname} extracted as {img_format.upper()}")
-        else:
-            path.write_bytes(data)
-
-    def _ab2png(
-        self,
-        bundle: bytes,
-        img_format: str,
-        img_resize: IMG_RESIZE_ARGTYPE,
-    ) -> bytes:
-        """
-        [INTERNAL] Extracts a single image from the assetbundle's container.
+        [INTERNAL] Attempts to extract a single image from the assetbundle's container.
+        Triggered only when the assetbundle name starts with 'img_' AND extract_img is True.
         Raises a warning if the bundle contains multiple objects.
-
-        Note: This method accepts an assetbundle in raw bytes and returns an image
-        in raw bytes, for a more straightforward interface.
         """
-        env = UnityPy.load(bundle)
+
+        if self.name.split("_")[0] != "img" or not extract_img:
+            path.write_bytes(data)
+            return
+
+        env = UnityPy.load(data)
         values = list(env.container.values())
         if len(values) != 1:
             logger.warning(f"{self._idname} contains {len(values)} objects")
             return b""
+
         img = values[0].read().image
         if img_resize:
             if type(img_resize) == str:
@@ -291,6 +270,6 @@ class GkmasAssetBundle(GkmasResource):
             else:
                 new_size = img_resize
             img = img.resize(new_size, Image.LANCZOS)
-        buf = BytesIO()
-        img.save(buf, format=img_format, quality=100)
-        return buf.getvalue()
+
+        img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
+        logger.success(f"{self._idname} extracted as {img_format.upper()}")
