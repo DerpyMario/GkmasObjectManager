@@ -76,7 +76,6 @@ class GkmasManifest:
             self.revision = None
             return
 
-        protodb = Database()
         ciphertext = Path(src).read_bytes()
 
         try:
@@ -141,32 +140,22 @@ class GkmasManifest:
     def __contains__(self, key: str):
         return key in self._name2blob
 
-    def _make_diff_manifest(self, diffdict: dict, rev1: str, rev2: str):
+    def __sub__(self, other):
         """
         [INTERNAL] Creates a manifest from a differentiation dictionary.
-        This is the only method where 'self' is not referenced.
-
-        Args:
-            diffdict (dict): A dictionary containing differentiated assetbundles and resources,
-                created by utils.Diclist.diff().
-            rev1 (str): Revision of the first manifest.
-            rev2 (str): Revision of the second manifest.
+        The diffdict refers to a dictionary containing differentiated
+        assetbundles and resources, created by utils.Diclist.diff().
         """
         manifest = GkmasManifest()
-        manifest.revision = f"{rev1}-{rev2}"
-        manifest._parse_jdict(diffdict)
-        logger.info("Manifest created from differentiation")
-        return manifest
-
-    def __sub__(self, other):
-        return self._make_diff_manifest(
+        manifest.revision = f"{self.revision}-{other.revision}"
+        manifest._parse_jdict(
             {
                 "assetBundleList": self._abl.diff(other._abl, DICLIST_IGNORED_FIELDS),
                 "resourceList": self._resl.diff(other._resl, DICLIST_IGNORED_FIELDS),
-            },
-            self.revision,
-            other.revision,
+            }
         )
+        logger.info("Manifest created from differentiation")
+        return manifest
 
     # ------------ Download ------------
 
