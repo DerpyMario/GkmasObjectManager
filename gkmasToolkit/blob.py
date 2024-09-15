@@ -293,7 +293,11 @@ class GkmasAssetBundle(GkmasResource):
                 img_resize = self._determine_new_size(img.size, ratio=img_resize)
             img = img.resize(img_resize, Image.LANCZOS)
 
-        img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
+        try:
+            img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
+        except OSError:  # cannot write mode RGBA as {img_format}
+            img = img.convert("RGB")
+            img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
         logger.success(f"{self._idname} extracted as {img_format.upper()}")
 
     def _determine_new_size(

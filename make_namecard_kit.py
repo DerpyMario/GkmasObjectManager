@@ -6,21 +6,17 @@ from gkmasToolkit.const import CHARACTER_ABBREVS
 from gkmasToolkit.utils import Logger
 
 
-# general
-# - bg_common…
-# - frame?
-# - misc…
 instructions_dl = [
     (r"img_general_icon_contest-rank.*", "profile"),
     (r"img_general_meishi_illust_idol.*", "idol/full"),
     (r"img_general_meishi_illust_sd.*", "idol/mini", "2:3"),
-    (r"img_general_cidol.*full\..*", "idol/produce", "9:16"),
-    (r"img_general_cidol.*thumb-landscape-large.*", "idol/produce", "16:9"),
+    (r"img_general_cidol.*full\..*", "idol/produce", "9:16", "jpg"),
+    (r"img_general_cidol.*thumb-landscape-large.*", "idol/produce", "16:9", "jpg"),
     (r"img_general_cidol.*thumb-portrait.*", "idol/produce", "3:4"),
     (r"img_general_meishi_illust_sign.*", "idol/sign"),
-    (r"img_general_csprt.*full\..*", "support", "16:9"),
-    (r"img_general_meishi_base_story-bg.*", "base/commu", "16:9"),
-    (r"img_general_meishi_base_(?!story-bg).*full\..*", "base", "16:9"),
+    (r"img_general_csprt.*full\..*", "support", "16:9", "jpg"),
+    (r"img_general_meishi_base_story-bg.*", "base/commu", "16:9", "jpg"),
+    (r"img_general_meishi_base_(?!story-bg).*full\..*", "base", "16:9", "jpg"),
     (r"img_general_achievement_produce.*", "achievement/produce"),
     (r"img_general_achievement_common.*", "achievement/misc"),
     (r"img_general_meishi_illust_music-logo.*", "parts/logo", "3:2"),
@@ -60,11 +56,18 @@ if __name__ == "__main__":
 
     for pattern, subdir, *config in instructions_dl:
         logger.info(f"Populating '{subdir}'")
+
         ratio = config[0] if config else None
+        fmt = config[1] if len(config) > 1 else "png"
+        # In this case, all JPGs must be resized, but this remains unfixed
+        # since this instruction-based coding style can hardly be generalized
+
         manifest.download(
             pattern,
             path=target + subdir,
             categorize=False,
+            extract_img=True,
+            img_format=fmt,
             img_resize=ratio,
         )
 
