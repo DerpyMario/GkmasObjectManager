@@ -20,7 +20,7 @@ import requests
 import UnityPy
 from hashlib import md5
 from pathlib import Path
-from typing import Tuple
+from typing import Union, Tuple
 from PIL import Image
 
 
@@ -126,7 +126,7 @@ class GkmasResource:
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _determine_subdir(filename: str) -> str:
+    def _determine_subdir(self, filename: str) -> str:
         """
         [INTERNAL] Automatically organize files into nested subdirectories,
         stopping at the first 'character identifier'.
@@ -296,26 +296,23 @@ class GkmasAssetBundle(GkmasResource):
         logger.success(f"{self._idname} extracted as {img_format.upper()}")
 
     def _determine_new_size(
+        self,
         size: Tuple[int, int],
         ratio: str,
-        mode: str = Union["maximize", "ensure_fit", "preserve_size"],
+        mode: Union["maximize", "ensure_fit", "preserve_size"] = "maximize",
     ) -> Tuple[int, int]:
         """
-        Resize an image based on a given ratio.
+        [INTERNAL] Determines the new size of an image based on a given ratio.
 
-        Args:
-            img (Image.Image): The original image object.
-            resize (Union[None, str, Tuple[int, int]]): Image resizing argument.
-            mode (str) = 'maximize': The resizing mode (terms borrowed from PowerPoint).
-                'maximize': Enlarges the image to fit the ratio.
-                'ensure_fit': Shrinks the image to fit the ratio.
-                'preserve_size': Maintains approximately the same pixel count.
+        mode can be one of (terms borrowed from PowerPoint):
+        - 'maximize': Enlarges the image to fit the ratio.
+        - 'ensure_fit': Shrinks the image to fit the ratio.
+        - 'preserve_size': Maintains approximately the same pixel count.
 
-        Example:
-            Given ratio = '4:3', an image of size (1920, 1080) is resized to:
-            - (1920, 1440) in 'maximize' mode,
-            - (1440, 1080) in 'ensure_fit' mode, and
-            - (1663, 1247) in 'preserve_size' mode.
+        Example: Given ratio = '4:3', an image of size (1920, 1080) is resized to:
+        - (1920, 1440) in 'maximize' mode,
+        - (1440, 1080) in 'ensure_fit' mode, and
+        - (1663, 1247) in 'preserve_size' mode.
         """
 
         ratio = ratio.split(":")
@@ -327,28 +324,22 @@ class GkmasAssetBundle(GkmasResource):
             raise ValueError("Invalid ratio values. Must be positive.")
 
         ratio = ratio[0] / ratio[1]
-        w, h = img.size
+        w, h = size
         ratio_old = w / h
         if ratio_old == ratio:
-            return img  # untouched
+            return size
 
         w_new, h_new = w, h
-        if mode == "maximize":
-            if ratio_old > ratio:
-                h_new = w / ratio
-            else:
-                w_new = h * ratio
-        elif mode == "ensure_fit":
-            if ratio_old > ratio:
-                h_new = w / ratio
-            else:
-                w_new = h * ratio
-        elif mode == "preserve_size":
+        if mode == "preserve_size":
             pixel_count = w * h
             h_new = (pixel_count / ratio) ** 0.5
             w_new = h_new * ratio
+        elif (mode == "maximize" and ratio_old > ratio) or (
+            mode == "ensure_fit" and ratio_old < ratio
+        ):
+            h_new = w / ratio
         else:
-            raise ValueError("Invalid mode (maximize/ensure_fit/preserve_size).")
+            w_new = h * ratio
 
-        round = lambda x: int(x + 0.5)  # round to nearest integer
-        return img.resize((round(w_new), round(h_new)), Image.LANCZOS)
+        round = lambda x: int(x + 0.5)  # round to the nearest integer
+        return round(w_new), round(h_new)
