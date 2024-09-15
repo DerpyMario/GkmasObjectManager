@@ -20,7 +20,7 @@ instructions_dl = [
     (r"img_general_meishi_illust_sign.*", "idol/sign"),
     (r"img_general_csprt.*full\..*", "support", "16:9"),
     (r"img_general_meishi_base_story-bg.*", "base/commu", "16:9"),
-    (r"img_general_meishi_base_(?!story-bg).*full\..*", "base/misc", "16:9"),
+    (r"img_general_meishi_base_(?!story-bg).*full\..*", "base", "16:9"),
     (r"img_general_achievement_produce.*", "achievement/produce"),
     (r"img_general_achievement_common.*", "achievement/misc"),
     (r"img_general_meishi_illust_music-logo.*", "parts/logo", "3:2"),
@@ -36,11 +36,11 @@ instructions_dl = [
 
 # Have to hardcode the number 10, otherwise this requires empty folder post-detection
 for char in CHARACTER_ABBREVS[:10]:
-    instructions_dl.append(
-        (f"img_general_achievement_{char}.*", f"achievement/idol/{char}", None)
-    )
-    instructions_dl.append(
-        (f"img_general_achievement_char_{char}.*", f"achievement/idol/{char}", None)
+    instructions_dl.extend(
+        [
+            (f"img_general_achievement_{char}.*", f"achievement/idol/{char}"),
+            (f"img_general_achievement_char_{char}.*", f"achievement/idol/{char}"),
+        ]
     )
 
 # These situations are not common enough to be generalized in the module
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     logger = Logger()
 
     manifest = GkmasManifest(argv[1])
-    target = f"namecard_kit_v{manifest.revision}/"  # output directory
+    target = f"gkmas_namecard_kit_v{manifest.revision}/"  # output directory
 
     for pattern, subdir, *config in instructions_dl:
         logger.info(f"Populating '{subdir}'")
@@ -75,3 +75,5 @@ if __name__ == "__main__":
             cat = cat_func(f)
             os.makedirs(os.path.join(parent, cat), exist_ok=True)
             os.rename(os.path.join(parent, f), os.path.join(parent, cat, f))
+
+    logger.info(f"Namecard kit ready at '{target}'")
