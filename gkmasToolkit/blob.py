@@ -266,10 +266,9 @@ class GkmasAssetBundle(GkmasResource):
         img = values[0].read().image
         if img_resize:
             if type(img_resize) == str:
-                new_size = resize_by_ratio(img.size, img_resize)
+                img = resize_by_ratio(img, img_resize)
             else:
-                new_size = img_resize
-            img = img.resize(new_size, Image.LANCZOS)
+                img = img.resize(img_resize, Image.LANCZOS)
 
         img.save(path.with_suffix(f".{img_format.lower()}"), quality=100)
         logger.success(f"{self._idname} extracted as {img_format.upper()}")

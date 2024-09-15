@@ -17,23 +17,23 @@ round = lambda x: int(x + 0.5)  # round to nearest integer
 
 
 def resize_by_ratio(
-    size: Tuple[int, int],
+    img: Image.Image,
     ratio: str,
     mode="maximize",
-) -> Tuple[int, int]:
+) -> Image.Image:
     """
-    Determines the new size of an image based on a given ratio.
+    Resize an image based on a given ratio.
 
     Args:
-        size (Tuple[int, int]): The original size of the image.
-        ratio (str): The target ratio in the format 'width:height'.
+        img (Image.Image): The original image object.
+        resize (Union[None, str, Tuple[int, int]]): Image resizing argument.
         mode (str) = 'maximize': The resizing mode (terms borrowed from PowerPoint).
             'maximize': Enlarges the image to fit the ratio.
             'ensure_fit': Shrinks the image to fit the ratio.
             'preserve_size': Maintains approximately the same pixel count.
 
     Example:
-        size = (1920, 1080), ratio = '4:3' gives
+        Given ratio = '4:3', an image of size (1920, 1080) is resized to:
         - (1920, 1440) in 'maximize' mode,
         - (1440, 1080) in 'ensure_fit' mode, and
         - (1663, 1247) in 'preserve_size' mode.
@@ -48,26 +48,30 @@ def resize_by_ratio(
         raise ValueError("Invalid ratio values. Must be positive.")
 
     ratio = ratio[0] / ratio[1]
-    ratio_old = size[0] / size[1]
+    w, h = img.size
+    ratio_old = w / h
     if ratio_old == ratio:
-        return size  # untouched
+        return img  # untouched
 
+    w_new, h_new = w, h
     if mode == "maximize":
         if ratio_old > ratio:
-            return (size[0], round(size[0] / ratio))
+            h_new = w / ratio
         else:
-            return (round(size[1] * ratio), size[1])
+            w_new = h * ratio
     elif mode == "ensure_fit":
         if ratio_old > ratio:
-            return (round(size[1] * ratio), size[1])
+            h_new = w / ratio
         else:
-            return (size[0], round(size[0] / ratio))
+            w_new = h * ratio
     elif mode == "preserve_size":
-        pixel_count = size[0] * size[1]
+        pixel_count = w * h
         h_new = (pixel_count / ratio) ** 0.5
-        return (round(h_new * ratio), round(h_new))
+        w_new = h_new * ratio
     else:
         raise ValueError("Invalid mode (maximize/ensure_fit/preserve_size).")
+
+    return img.resize((round(w_new), round(h_new)), Image.LANCZOS)
 
 
 def determine_subdir(filename: str) -> str:
