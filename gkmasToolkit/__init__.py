@@ -5,7 +5,7 @@ Written by Ziyuan Chen (https://github.com/AllenHeartcore/gkmasToolkit_core).
 Refactored from Kishida Natsumi (https://github.com/kishidanatsumi/gkmasToolkit),
 which in turn was adapted from Vibbit (https://github.com/MalitsPlus/HoshimiToolkit).
 
-This module defines an object-oriented interface for interacting with blob databases
+This module defines an object-oriented interface for interacting with object databases
 (hereafter referred to as "manifests", usually named "octocacheevai")
 in the mobile game Gakuen Idolm@ster (https://gakuen.idolmaster-official.jp/).
 
@@ -13,7 +13,7 @@ Features
 --------
 - Decrypt and export octocache as raw ProtoDB, JSON, or CSV
 - Differentiate between octocache versions
-- Download and deobfuscate blobs in parallel
+- Download and deobfuscate objects in parallel
 
 Example Usage
 -------------

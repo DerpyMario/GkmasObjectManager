@@ -1,6 +1,6 @@
 """
 crypt.py
-Manifest decryptor and blob deobfuscator.
+Manifest decryptor and object deobfuscator.
 """
 
 from hashlib import md5

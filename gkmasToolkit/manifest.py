@@ -6,7 +6,7 @@ Manifest decryption and export.
 from .utils import Diclist, Logger, ConcurrentDownloader
 from .crypt import AESCBCDecryptor
 from .octodb_pb2 import Database
-from .blob import GkmasAssetBundle, GkmasResource
+from .object import GkmasAssetBundle, GkmasResource
 from .const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
@@ -108,7 +108,7 @@ class GkmasManifest:
         Internal attributes:
             _abl (Diclist): List of assetbundle *info dictionaries*.
             _resl (Diclist): List of resource *info dictionaries*.
-            _name2blob (dict): Mapping from blob name to GkmasAssetBundle/GkmasResource.
+            _name2object (dict): Mapping from object name to GkmasAssetBundle/GkmasResource.
 
         Documentation for Diclist can be found in utils.py.
         """
@@ -117,8 +117,8 @@ class GkmasManifest:
         self._resl = Diclist(self.jdict["resourceList"])
         self.abs = [GkmasAssetBundle(ab) for ab in self._abl]
         self.reses = [GkmasResource(res) for res in self._resl]
-        self._name2blob = {ab.name: ab for ab in self.abs}  # quick lookup
-        self._name2blob.update({res.name: res for res in self.reses})
+        self._name2object = {ab.name: ab for ab in self.abs}  # quick lookup
+        self._name2object.update({res.name: res for res in self.reses})
         logger.info(f"Found {len(self.abs)} assetbundles")
         logger.info(f"Found {len(self.reses)} resources")
         logger.info(f"Detected revision: {self.revision}")
@@ -129,16 +129,16 @@ class GkmasManifest:
         return f"<GkmasManifest revision {self.revision}>"
 
     def __getitem__(self, key: str):
-        return self._name2blob[key]
+        return self._name2object[key]
 
     def __iter__(self):
-        return iter(self._name2blob.values())
+        return iter(self._name2object.values())
 
     def __len__(self):
-        return len(self._name2blob)
+        return len(self._name2object)
 
     def __contains__(self, key: str):
-        return key in self._name2blob
+        return key in self._name2object
 
     def __sub__(self, other):
         """
@@ -177,10 +177,10 @@ class GkmasManifest:
                 Allowed special tokens are const.ALL_ASSETBUNDLES and const.ALL_RESOURCES.
             nworker (int) = DEFAULT_DOWNLOAD_NWORKER: Number of concurrent download workers.
                 Defaults to multiprocessing.cpu_count().
-            path (str) = DEFAULT_DOWNLOAD_PATH: A directory to which the blobs are downloaded.
+            path (str) = DEFAULT_DOWNLOAD_PATH: A directory to which the objects are downloaded.
                 *WARNING: Behavior is undefined if the path points to an definite file (with extension).*
-            categorize (bool) = True: Whether to categorize the downloaded blobs into subdirectories.
-                If False, all blobs are downloaded to the specified 'path' in a flat structure.
+            categorize (bool) = True: Whether to categorize the downloaded objects into subdirectories.
+                If False, all objects are downloaded to the specified 'path' in a flat structure.
             extract_img (bool) = True: Whether to extract images from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' are downloaded as is.
             img_format (str) = 'png': Image format for extraction. Case-insensitive.
@@ -192,24 +192,24 @@ class GkmasManifest:
                 If Tuple[int, int], images are resized to the specified exact dimensions.
         """
 
-        blobs = []
+        objects = []
 
         for criterion in criteria:
             if criterion == ALL_ASSETBUNDLES:  # special tokens, enclosed in <>
-                blobs.extend(self.abs)
+                objects.extend(self.abs)
             elif criterion == ALL_RESOURCES:
-                blobs.extend(self.reses)
+                objects.extend(self.reses)
             else:
-                blobs.extend(
+                objects.extend(
                     [
-                        self._name2blob[file]
-                        for file in self._name2blob
+                        self._name2object[file]
+                        for file in self._name2object
                         if re.match(criterion, file)
                     ]
                 )
 
         ConcurrentDownloader(nworker).dispatch(
-            blobs,
+            objects,
             path=path,
             categorize=categorize,
             extract_img=extract_img,

@@ -19,9 +19,9 @@ CSV_COLUMNS = ["objectName", "md5", "name", "size", "state"]
 ALL_ASSETBUNDLES = "<ALL_ASSETBUNDLES>"
 ALL_RESOURCES = "<ALL_RESOURCES>"
 
-# blob download
+# object download
 GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
-DEFAULT_DOWNLOAD_PATH = "blob/"
+DEFAULT_DOWNLOAD_PATH = "objects/"
 DEFAULT_DOWNLOAD_NWORKER = multiprocessing.cpu_count()
 CHARACTER_ABBREVS = [
     "hski",  # Hanami SaKI
@@ -42,7 +42,7 @@ CHARACTER_ABBREVS = [
     "trvi",  # VIsual TRainer
 ]
 
-# blob deobfuscate
+# object deobfuscate
 GKMAS_UNITY_VERSION = "2022.3.21f1"
 UNITY_SIGNATURE = b"UnityFS"
 IMG_RESIZE_ARGTYPE = Union[None, str, Tuple[int, int]]

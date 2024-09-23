@@ -81,21 +81,21 @@ class ConcurrentDownloader:
     A multithreaded downloader for objects on server.
 
     Methods:
-        dispatch(blobs: list, **kwargs):
-            Downloads a list of blobs to a specified path.
-            Executor implicitly calls blob.GkmasResource.download() with **kwargs.
+        dispatch(objects: list, **kwargs):
+            Downloads a list of objects to a specified path.
+            Executor implicitly calls object.GkmasResource.download() with **kwargs.
     """
 
     def __init__(self, nworker: int):
         self.nworker = nworker
 
-    def dispatch(self, blobs: list, **kwargs):
+    def dispatch(self, objects: list, **kwargs):
         # don't use *args here to avoid fixed order
 
         # not initialized in __init__ to avoid memory leak
         self.executor = ThreadPoolExecutor(max_workers=self.nworker)
 
-        futures = [self.executor.submit(blob.download, **kwargs) for blob in blobs]
+        futures = [self.executor.submit(obj.download, **kwargs) for obj in objects]
         for future in as_completed(futures):
             future.result()
 

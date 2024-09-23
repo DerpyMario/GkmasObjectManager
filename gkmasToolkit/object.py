@@ -1,5 +1,5 @@
 """
-blob.py
+object.py
 Asset bundles/Resources downloading and deobfuscation.
 """
 
@@ -83,8 +83,8 @@ class GkmasResource:
         Args:
             path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the resource name.
-            categorize (bool) = True: Whether to put the downloaded blob into subdirectories.
-                If False, the blob is directly downloaded to the specified 'path'.
+            categorize (bool) = True: Whether to put the downloaded object into subdirectories.
+                If False, the object is directly downloaded to the specified 'path'.
             extract_img (bool) = True:
                 IGNORED. PRESERVED FOR COMPATIBILITY WITH CONCURRENT DOWNLOADER.
             img_format (str) = 'png':
@@ -226,8 +226,8 @@ class GkmasAssetBundle(GkmasResource):
         Args:
             path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the assetbundle name.
-            categorize (bool) = True: Whether to put the downloaded blob into subdirectories.
-                If False, the blob is directly downloaded to the specified 'path'.
+            categorize (bool) = True: Whether to put the downloaded object into subdirectories.
+                If False, the object is directly downloaded to the specified 'path'.
             extract_img (bool) = True: Whether to extract a single image from assetbundles of type 'img'.
                 If False, 'img_.*\\.unity3d' is downloaded as is.
             img_format (str) = 'png': Image format for extraction. Case-insensitive.
