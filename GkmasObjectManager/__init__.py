@@ -1,6 +1,6 @@
 """
-gkmasToolkit
-============
+GkmasObjectManager
+==================
 Written by Ziyuan Chen (https://github.com/AllenHeartcore/gkmasToolkit_core).
 Refactored from Kishida Natsumi (https://github.com/kishidanatsumi/gkmasToolkit),
 which in turn was adapted from Vibbit (https://github.com/MalitsPlus/HoshimiToolkit).
@@ -18,12 +18,12 @@ Features
 Example Usage
 -------------
 ```python
-from gkmasToolkit import GkmasManifest
+from GkmasObjectManager import GkmasManifest
 manifest = GkmasManifest("EncryptedCache/octocacheevai")
 manifest.export('DecryptedCache/')
 manifest.download('adv.*ttmr.*', 'sud_vo.*fktn.*', 'mdl.*hski.*', nworker=8)
 
-from gkmasToolkit import ALL_ASSETBUNDLES, ALL_RESOURCES
+from GkmasObjectManager import ALL_ASSETBUNDLES, ALL_RESOURCES
 manifest.download(ALL_ASSETBUNDLES, ALL_RESOURCES)
 
 manifest_old = GkmasManifest("EncryptedCache/octocacheevai_old")

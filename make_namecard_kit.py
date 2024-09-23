@@ -1,9 +1,9 @@
 import os
 from sys import argv
 
-from gkmasToolkit import GkmasManifest
-from gkmasToolkit.const import CHARACTER_ABBREVS
-from gkmasToolkit.utils import Logger
+from GkmasObjectManager import GkmasManifest
+from GkmasObjectManager.const import CHARACTER_ABBREVS
+from GkmasObjectManager.utils import Logger
 
 
 instructions_dl = [
