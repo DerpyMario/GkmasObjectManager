@@ -33,4 +33,5 @@ mdiff.export('DecryptedCache/diff/')
 """
 
 from .manifest import GkmasManifest
-from .const import ALL_ASSETBUNDLES, ALL_RESOURCES
+from .object import GkmasAssetBundle, GkmasResource
+from .utils import ALL_ASSETBUNDLES, ALL_RESOURCES
