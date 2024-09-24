@@ -3,11 +3,11 @@ manifest.py
 Manifest decryption and export.
 """
 
-from .utils import Diclist, Logger, ConcurrentDownloader
-from .crypt import AESCBCDecryptor
-from .octodb_pb2 import Database
-from .object import GkmasAssetBundle, GkmasResource
-from .const import (
+from ..utils import Diclist, Logger, ConcurrentDownloader
+from ._crypt import AESCBCDecryptor
+from ._octodb_pb2 import Database
+from ..object import GkmasAssetBundle, GkmasResource
+from ._const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
     DICLIST_IGNORED_FIELDS,

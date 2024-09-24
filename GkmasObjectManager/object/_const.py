@@ -1,6 +1,6 @@
 """
-const.py
-Module-wide constants (macro equivalents).
+_const.py
+Constants for GkmasAssetBundle and GkmasResource.
 """
 
 import multiprocessing

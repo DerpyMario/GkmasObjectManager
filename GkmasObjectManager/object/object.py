@@ -1,11 +1,11 @@
 """
 object.py
-Asset bundles/Resources downloading and deobfuscation.
+GkmasAssetBundle and GkmasResource downloading and deobfuscation.
 """
 
-from .utils import Logger
-from .crypt import GkmasDeobfuscator
-from .const import (
+from ..utils import Logger
+from ._obfus import GkmasDeobfuscator
+from ._const import (
     CHARACTER_ABBREVS,
     DEFAULT_DOWNLOAD_PATH,
     GKMAS_OBJECT_SERVER,

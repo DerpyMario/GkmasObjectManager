@@ -1,6 +1,6 @@
 """
-crypt.py
-Manifest decryptor and object deobfuscator.
+_crypt.py
+[INTERNAL] GkmasManifest decryptor.
 """
 
 from hashlib import md5
