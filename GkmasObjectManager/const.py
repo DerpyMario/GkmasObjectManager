@@ -1,16 +1,30 @@
 """
-_const.py
-[INTERNAL] Constants for GkmasAssetBundle and GkmasResource.
+const.py
+Module-wide constants (macro equivalents).
 """
 
 import multiprocessing
 from typing import Union, Tuple
 
 
-# download
-GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
+# manifest decrypt
+GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
+GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
+
+# manifest export
+DICLIST_IGNORED_FIELDS = ["dependencies", "uploadVersionId"]
+CSV_COLUMNS = ["objectName", "md5", "name", "size", "state"]
+
+# manifest download dispatcher
 DEFAULT_DOWNLOAD_PATH = "objects/"
 DEFAULT_DOWNLOAD_NWORKER = multiprocessing.cpu_count()
+
+# manifest download tokens
+ALL_ASSETBUNDLES = "<ALL_ASSETBUNDLES>"
+ALL_RESOURCES = "<ALL_RESOURCES>"
+
+# object download
+GKMAS_OBJECT_SERVER = "https://object.asset.game-gakuen-idolmaster.jp/"
 CHARACTER_ABBREVS = [
     "hski",  # Hanami SaKI
     "ttmr",  # Tsukimura TeMaRi
@@ -30,7 +44,7 @@ CHARACTER_ABBREVS = [
     "trvi",  # VIsual TRainer
 ]
 
-# deobfuscate
+# object deobfuscate
 GKMAS_UNITY_VERSION = "2022.3.21f1"
 UNITY_SIGNATURE = b"UnityFS"
 IMG_RESIZE_ARGTYPE = Union[None, str, Tuple[int, int]]

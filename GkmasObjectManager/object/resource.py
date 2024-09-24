@@ -4,7 +4,7 @@ GkmasResource downloading.
 """
 
 from ..utils import Logger
-from ._const import (
+from ..const import (
     CHARACTER_ABBREVS,
     DEFAULT_DOWNLOAD_PATH,
     GKMAS_OBJECT_SERVER,

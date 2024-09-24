@@ -3,9 +3,10 @@ assetbundle.py
 GkmasAssetBundle downloading and deobfuscation.
 """
 
-from ..utils import Logger
+from .resource import GkmasResource
 from ._obfus import GkmasDeobfuscator
-from ._const import (
+from ..utils import Logger
+from ..const import (
     CHARACTER_ABBREVS,
     DEFAULT_DOWNLOAD_PATH,
     GKMAS_OBJECT_SERVER,

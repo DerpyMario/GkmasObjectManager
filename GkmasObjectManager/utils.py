@@ -8,11 +8,6 @@ from rich.console import Console
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-# manifest download dispatcher, "token" style
-ALL_ASSETBUNDLES = "<ALL_ASSETBUNDLES>"
-ALL_RESOURCES = "<ALL_RESOURCES>"
-
-
 class Diclist(list):
     """
     A list of dictionaries, optimized for comparison.

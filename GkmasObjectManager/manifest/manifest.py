@@ -3,11 +3,11 @@ manifest.py
 Manifest decryption and export.
 """
 
-from ..utils import Diclist, Logger, ConcurrentDownloader
 from ._crypt import AESCBCDecryptor
-from ._octodb_pb2 import Database
+from ._octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
-from ._const import (
+from ..utils import Diclist, Logger, ConcurrentDownloader
+from ..const import (
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
     DICLIST_IGNORED_FIELDS,
@@ -93,7 +93,7 @@ class GkmasManifest:
         [INTERNAL] Records raw protobuf bytes, converts to JSON,
         and calls "secondary backend" JSON parser.
         """
-        protodb = Database()
+        protodb = OctoDB()
         protodb.ParseFromString(raw)
         self.raw = raw
         self.revision = protodb.revision
