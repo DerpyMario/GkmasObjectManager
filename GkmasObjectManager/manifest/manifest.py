@@ -3,8 +3,8 @@ manifest.py
 Manifest decryption and export.
 """
 
-from ._crypt import AESCBCDecryptor
-from ._octodb_pb2 import Database as OctoDB
+from .crypt import AESCBCDecryptor
+from .octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
 from ..utils import Diclist, Logger, ConcurrentDownloader
 from ..const import (

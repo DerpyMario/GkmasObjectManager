@@ -1,5 +1,5 @@
 """
-_obfus.py
+obfuscate.py
 [INTERNAL] GkmasAssetBundle deobfuscator.
 """
 

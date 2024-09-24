@@ -4,7 +4,7 @@ GkmasAssetBundle downloading and deobfuscation.
 """
 
 from .resource import GkmasResource
-from ._obfus import GkmasDeobfuscator
+from .obfuscate import GkmasDeobfuscator
 from ..utils import Logger
 from ..const import (
     CHARACTER_ABBREVS,

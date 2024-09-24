@@ -1,5 +1,5 @@
 """
-_crypt.py
+crypt.py
 [INTERNAL] GkmasManifest decryptor.
 """
 
