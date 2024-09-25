@@ -11,8 +11,10 @@ from typing import Union, Tuple
 GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
 GKMAS_OCTOCACHE_IV = "LvAUtf+tnz"
 
-# manifest export
+# manifest diff
 DICLIST_IGNORED_FIELDS = ["dependencies", "uploadVersionId"]
+
+# manifest export
 CSV_COLUMNS = ["objectName", "md5", "name", "size", "state"]
 
 # manifest download dispatcher

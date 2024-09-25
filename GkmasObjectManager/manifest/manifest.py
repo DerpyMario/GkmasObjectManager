@@ -1,28 +1,11 @@
 """
 manifest.py
-Manifest decryption and export.
+Manifest decryption, exporting, and object downloading.
 """
 
-from .crypt import AESCBCDecryptor
-from .octodb_pb2 import Database as OctoDB
-from ..object import GkmasAssetBundle, GkmasResource
-from ..utils import Diclist, Logger, ConcurrentDownloader
-from ..const import (
-    GKMAS_OCTOCACHE_KEY,
-    GKMAS_OCTOCACHE_IV,
-    DICLIST_IGNORED_FIELDS,
-    DEFAULT_DOWNLOAD_NWORKER,
-    DEFAULT_DOWNLOAD_PATH,
-    IMG_RESIZE_ARGTYPE,
-    ALL_ASSETBUNDLES,
-    ALL_RESOURCES,
-    CSV_COLUMNS,
-)
+from ..utils import Logger
+from ..const import DICLIST_IGNORED_FIELDS
 
-import re
-import json
-import pandas as pd
-from google.protobuf.json_format import MessageToJson
 from pathlib import Path
 
 
@@ -57,7 +40,10 @@ class GkmasManifest:
             Exports the manifest as ProtoDB, JSON, and/or CSV to the specified path.
     """
 
-    from ._offline_init import _parse_raw, _parse_jdict
+    # It's necessary to import all methods instead of merely interface/dispatcher functions;
+    # otherwise, self._helper_method() in these interface functions would encounter name
+    # resolution errors. Also, import * is prohibited unless importing from a module.
+    from ._initdb import _offline_init, _parse_raw, _parse_jdict
     from ._download import download
     from ._export import export, _export_protodb, _export_json, _export_csv
 
@@ -80,19 +66,7 @@ class GkmasManifest:
             self.revision = None
             return
 
-        ciphertext = Path(src).read_bytes()
-
-        try:
-            self._parse_raw(ciphertext)
-            logger.info("Manifest created from unencrypted ProtoDB")
-
-        except:
-            decryptor = AESCBCDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
-            plaintext = decryptor.decrypt(ciphertext)
-            self._parse_raw(plaintext[16:])  # trim md5 hash
-            logger.info("Manifest created from encrypted ProtoDB")
-
-    # ------------ Magic Methods ------------
+        self._offline_init(src)
 
     def __repr__(self):
         return f"<GkmasManifest revision {self.revision}>"

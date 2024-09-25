@@ -1,30 +1,19 @@
-from .crypt import AESCBCDecryptor
-from .octodb_pb2 import Database as OctoDB
-from ..object import GkmasAssetBundle, GkmasResource
-from ..utils import Diclist, Logger, ConcurrentDownloader
+"""
+_download.py
+[CLASS SPLIT] GkmasManifest-managed object downloading.
+"""
+
+from ..utils import ConcurrentDownloader
 from ..const import (
-    GKMAS_OCTOCACHE_KEY,
-    GKMAS_OCTOCACHE_IV,
-    DICLIST_IGNORED_FIELDS,
     DEFAULT_DOWNLOAD_NWORKER,
     DEFAULT_DOWNLOAD_PATH,
     IMG_RESIZE_ARGTYPE,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
-    CSV_COLUMNS,
 )
 
 import re
-import json
-import pandas as pd
-from google.protobuf.json_format import MessageToJson
 from pathlib import Path
-
-
-logger = Logger()
-
-
-# ------------ Download ------------
 
 
 def download(

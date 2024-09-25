@@ -1,29 +1,15 @@
 """
 resource.py
-GkmasResource downloading.
+General-purpose resource downloading.
 """
 
 from ..utils import Logger
-from ..const import (
-    CHARACTER_ABBREVS,
-    DEFAULT_DOWNLOAD_PATH,
-    GKMAS_OBJECT_SERVER,
-    GKMAS_UNITY_VERSION,
-    UNITY_SIGNATURE,
-    IMG_RESIZE_ARGTYPE,
-)
+from ..const import DEFAULT_DOWNLOAD_PATH, IMG_RESIZE_ARGTYPE
 
-import re
-import requests
-import UnityPy
-from hashlib import md5
 from pathlib import Path
-from typing import Union, Tuple
-from PIL import Image
 
 
 logger = Logger()
-UnityPy.config.FALLBACK_UNITY_VERSION = GKMAS_UNITY_VERSION
 
 
 class GkmasResource:

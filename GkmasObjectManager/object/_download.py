@@ -1,24 +1,19 @@
+"""
+_download.py
+[CLASS SPLIT] GkmasAssetBundle and GkmasResource downloading.
+"""
+
 from ..utils import Logger
-from ..const import (
-    CHARACTER_ABBREVS,
-    DEFAULT_DOWNLOAD_PATH,
-    GKMAS_OBJECT_SERVER,
-    GKMAS_UNITY_VERSION,
-    UNITY_SIGNATURE,
-    IMG_RESIZE_ARGTYPE,
-)
+from ..const import CHARACTER_ABBREVS, GKMAS_OBJECT_SERVER
 
 import re
 import requests
-import UnityPy
 from hashlib import md5
 from pathlib import Path
-from typing import Union, Tuple
-from PIL import Image
+from typing import Union
 
 
 logger = Logger()
-UnityPy.config.FALLBACK_UNITY_VERSION = GKMAS_UNITY_VERSION
 
 
 def _download_path(self, path: Union[str, Path], categorize: bool) -> Path:

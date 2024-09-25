@@ -1,27 +1,37 @@
+"""
+_initdb.py
+[CLASS SPLIT] GkmasManifest protobuf initialization.
+"""
+
+from ..utils import Diclist, Logger
+from ..const import GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV
+
 from .crypt import AESCBCDecryptor
 from .octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
-from ..utils import Diclist, Logger, ConcurrentDownloader
-from ..const import (
-    GKMAS_OCTOCACHE_KEY,
-    GKMAS_OCTOCACHE_IV,
-    DICLIST_IGNORED_FIELDS,
-    DEFAULT_DOWNLOAD_NWORKER,
-    DEFAULT_DOWNLOAD_PATH,
-    IMG_RESIZE_ARGTYPE,
-    ALL_ASSETBUNDLES,
-    ALL_RESOURCES,
-    CSV_COLUMNS,
-)
 
-import re
 import json
-import pandas as pd
 from google.protobuf.json_format import MessageToJson
 from pathlib import Path
 
 
 logger = Logger()
+
+
+def _offline_init(self, src: str):
+    """
+    [INTERNAL] Initializes a manifest from the given offline source.
+    The protobuf referred to can be either encrypted or not.
+    """
+    ciphertext = Path(src).read_bytes()
+    try:
+        self._parse_raw(ciphertext)
+        logger.info("Manifest created from unencrypted ProtoDB")
+    except:
+        decryptor = AESCBCDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
+        plaintext = decryptor.decrypt(ciphertext)
+        self._parse_raw(plaintext[16:])  # trim md5 hash
+        logger.info("Manifest created from encrypted ProtoDB")
 
 
 def _parse_raw(self, raw: bytes):
