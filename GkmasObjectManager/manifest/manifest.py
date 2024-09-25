@@ -41,7 +41,7 @@ class GkmasManifest:
     # It's necessary to import all methods instead of merely interface/dispatcher functions;
     # otherwise, self._helper_method() in these interface functions would encounter name
     # resolution errors. Also, import * is prohibited unless importing from a module.
-    from ._initdb import _offline_init, _parse_raw, _parse_jdict
+    from ._initdb import _online_init, _offline_init, _parse_raw, _parse_jdict
     from ._download import download
     from ._export import export, _export_protodb, _export_json, _export_csv
 
@@ -64,7 +64,10 @@ class GkmasManifest:
             self.revision = None
             return
 
-        self._offline_init(src)
+        if isinstance(src, str) and src.startswith("<") and src.endswith(">"):
+            self._online_init(int(src[1:-1]))
+        else:
+            self._offline_init(src)
 
     def __repr__(self):
         return f"<GkmasManifest revision {self.revision}>"

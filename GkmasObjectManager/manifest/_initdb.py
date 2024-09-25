@@ -6,6 +6,9 @@ _initdb.py
 from ..utils import Diclist, Logger
 from ..const import (
     PATH_ARGTYPE,
+    GKMAS_API_URL,
+    GKMAS_API_HEADER,
+    GKMAS_ONLINEPDB_KEY,
     GKMAS_OCTOCACHE_KEY,
     GKMAS_OCTOCACHE_IV,
 )
@@ -15,11 +18,27 @@ from .octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
 
 import json
+import requests
 from google.protobuf.json_format import MessageToJson
 from pathlib import Path
 
 
 logger = Logger()
+
+
+def _online_init(self, revision: int = 0):
+    """
+    [INTERNAL] Requests a manifest by the specified revision.
+    Algorithm courtesy of github.com/DreamGallery/HatsuboshiToolkit
+    """
+    ciphertext = requests.get(
+        f"{GKMAS_API_URL}/{revision}",
+        headers=GKMAS_API_HEADER,
+    ).content
+    decryptor = AESCBCDecryptor(GKMAS_ONLINEPDB_KEY, ciphertext[:16])
+    plaintext = decryptor.decrypt(ciphertext[16:])
+    self._parse_raw(plaintext)
+    logger.info("Manifest created from online ProtoDB")
 
 
 def _offline_init(self, src: PATH_ARGTYPE):

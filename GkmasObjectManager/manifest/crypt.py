@@ -3,7 +3,6 @@ crypt.py
 [INTERNAL] GkmasManifest decryptor.
 """
 
-from hashlib import md5
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
@@ -20,19 +19,15 @@ class AESCBCDecryptor:
             Decrypts the given ciphertext into plaintext.
     """
 
-    def __init__(self, key: str, iv: str):
+    def __init__(self, key: bytes, iv: bytes):
         """
         Initializes the decryptor with the given key and IV.
 
         Args:
-            key (str): An UTF-8 encoded string whose MD5 hash is the AES key.
-            iv (str): An UTF-8 encoded string whose MD5 hash is the AES initialization vector.
+            key (bytes): The AES key.
+            iv (bytes): The AES initialization vector.
         """
 
-        key = bytes(key, "utf-8")
-        iv = bytes(iv, "utf-8")
-        key = md5(key).digest()
-        iv = md5(iv).digest()
         self.cipher = AES.new(key, AES.MODE_CBC, iv)
 
     def decrypt(self, enc: bytes) -> bytes:
