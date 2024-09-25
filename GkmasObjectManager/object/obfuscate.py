@@ -17,7 +17,7 @@ class GkmasDeobfuscator:
         header_len (int): Length of the obfuscated header.
 
     Methods:
-        deobfuscate(cipher: bytes) -> bytes:
+        deobfuscate(enc: bytes) -> bytes:
             Deobfuscates the given obfuscated bytes into plaintext.
     """
 

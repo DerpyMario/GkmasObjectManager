@@ -33,10 +33,10 @@ def _online_init(self, revision: int = 0):
     Algorithm courtesy of github.com/DreamGallery/HatsuboshiToolkit
     """
     url = urljoin(GKMAS_API_URL, str(revision))
-    ciphertext = requests.get(url, headers=GKMAS_API_HEADER).content
-    decryptor = AESCBCDecryptor(GKMAS_ONLINEPDB_KEY, ciphertext[:16])
-    plaintext = decryptor.decrypt(ciphertext[16:])
-    self._parse_raw(plaintext)
+    enc = requests.get(url, headers=GKMAS_API_HEADER).content
+    cipher = AESCBCDecryptor(GKMAS_ONLINEPDB_KEY, enc[:16])
+    dec = cipher.decrypt(enc[16:])
+    self._parse_raw(dec)
     logger.info("Manifest created from online ProtoDB")
 
 
@@ -45,14 +45,14 @@ def _offline_init(self, src: PATH_ARGTYPE):
     [INTERNAL] Initializes a manifest from the given offline source.
     The protobuf referred to can be either encrypted or not.
     """
-    ciphertext = Path(src).read_bytes()
+    enc = Path(src).read_bytes()
     try:
-        self._parse_raw(ciphertext)
+        self._parse_raw(enc)
         logger.info("Manifest created from unencrypted ProtoDB")
     except:
-        decryptor = AESCBCDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
-        plaintext = decryptor.decrypt(ciphertext)
-        self._parse_raw(plaintext[16:])  # trim md5 hash
+        cipher = AESCBCDecryptor(GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV)
+        dec = cipher.decrypt(enc)
+        self._parse_raw(dec[16:])  # trim md5 hash
         logger.info("Manifest created from encrypted ProtoDB")
 
 

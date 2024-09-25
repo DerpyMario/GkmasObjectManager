@@ -87,6 +87,6 @@ class GkmasResource:
             logger.warning(f"{self._idname} already exists")
             return
 
-        plain = self._download_bytes()
-        path.write_bytes(plain)
+        dec = self._download_bytes()
+        path.write_bytes(dec)
         logger.success(f"{self._idname} downloaded")

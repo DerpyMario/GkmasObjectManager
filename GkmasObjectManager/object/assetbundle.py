@@ -92,19 +92,19 @@ class GkmasAssetBundle(GkmasResource):
             logger.warning(f"{self._idname} already exists")
             return
 
-        cipher = self._download_bytes()
+        enc = self._download_bytes()
 
-        if cipher.startswith(UNITY_SIGNATURE):
-            self._export_img(path, cipher, extract_img, img_format, img_resize)
+        if enc.startswith(UNITY_SIGNATURE):
+            self._export_img(path, enc, extract_img, img_format, img_resize)
             logger.success(f"{self._idname} downloaded")
         else:
-            deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
-            plain = deobfuscator.deobfuscate(cipher)
-            if plain.startswith(UNITY_SIGNATURE):
-                self._export_img(path, plain, extract_img, img_format, img_resize)
+            cipher = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
+            dec = cipher.deobfuscate(enc)
+            if dec.startswith(UNITY_SIGNATURE):
+                self._export_img(path, dec, extract_img, img_format, img_resize)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:
-                path.write_bytes(cipher)
+                path.write_bytes(enc)
                 logger.warning(f"{self._idname} downloaded but LEFT OBFUSCATED")
                 # Unexpected things may happen...
                 # So unlike _download_bytes() in the parent class,
