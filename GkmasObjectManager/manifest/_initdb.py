@@ -21,6 +21,7 @@ import json
 import requests
 from google.protobuf.json_format import MessageToJson
 from pathlib import Path
+from urllib.parse import urljoin
 
 
 logger = Logger()
@@ -31,10 +32,8 @@ def _online_init(self, revision: int = 0):
     [INTERNAL] Requests a manifest by the specified revision.
     Algorithm courtesy of github.com/DreamGallery/HatsuboshiToolkit
     """
-    ciphertext = requests.get(
-        f"{GKMAS_API_URL}/{revision}",
-        headers=GKMAS_API_HEADER,
-    ).content
+    url = urljoin(GKMAS_API_URL, str(revision))
+    ciphertext = requests.get(url, headers=GKMAS_API_HEADER).content
     decryptor = AESCBCDecryptor(GKMAS_ONLINEPDB_KEY, ciphertext[:16])
     plaintext = decryptor.decrypt(ciphertext[16:])
     self._parse_raw(plaintext)

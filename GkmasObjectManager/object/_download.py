@@ -14,6 +14,7 @@ import re
 import requests
 from hashlib import md5
 from pathlib import Path
+from urllib.parse import urljoin
 
 
 logger = Logger()
@@ -72,7 +73,7 @@ def _download_bytes(self) -> bytes:
     on HTTP status code, size, and MD5 hash. Returns the resource as raw bytes.
     """
 
-    url = f"{GKMAS_OBJECT_SERVER}/{self.objectName}"
+    url = urljoin(GKMAS_OBJECT_SERVER, self.objectName)
     response = requests.get(url)
 
     # We're being strict here by aborting the download process
