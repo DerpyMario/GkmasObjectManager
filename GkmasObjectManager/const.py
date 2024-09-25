@@ -4,8 +4,13 @@ Module-wide constants (macro equivalents).
 """
 
 import multiprocessing
+from pathlib import Path
 from typing import Union, Tuple
 
+
+# argument type hints
+PATH_ARGTYPE = Union[str, Path]
+IMG_RESIZE_ARGTYPE = Union[None, str, Tuple[int, int]]
 
 # manifest decrypt
 GKMAS_OCTOCACHE_KEY = "1nuv9td1bw1udefk"
@@ -49,4 +54,3 @@ CHARACTER_ABBREVS = [
 # object deobfuscate
 GKMAS_UNITY_VERSION = "2022.3.21f1"
 UNITY_SIGNATURE = b"UnityFS"
-IMG_RESIZE_ARGTYPE = Union[None, str, Tuple[int, int]]

@@ -4,7 +4,11 @@ _initdb.py
 """
 
 from ..utils import Diclist, Logger
-from ..const import GKMAS_OCTOCACHE_KEY, GKMAS_OCTOCACHE_IV
+from ..const import (
+    PATH_ARGTYPE,
+    GKMAS_OCTOCACHE_KEY,
+    GKMAS_OCTOCACHE_IV,
+)
 
 from .crypt import AESCBCDecryptor
 from .octodb_pb2 import Database as OctoDB
@@ -18,7 +22,7 @@ from pathlib import Path
 logger = Logger()
 
 
-def _offline_init(self, src: str):
+def _offline_init(self, src: PATH_ARGTYPE):
     """
     [INTERNAL] Initializes a manifest from the given offline source.
     The protobuf referred to can be either encrypted or not.

@@ -4,19 +4,22 @@ _download.py
 """
 
 from ..utils import Logger
-from ..const import CHARACTER_ABBREVS, GKMAS_OBJECT_SERVER
+from ..const import (
+    PATH_ARGTYPE,
+    GKMAS_OBJECT_SERVER,
+    CHARACTER_ABBREVS,
+)
 
 import re
 import requests
 from hashlib import md5
 from pathlib import Path
-from typing import Union
 
 
 logger = Logger()
 
 
-def _download_path(self, path: Union[str, Path], categorize: bool) -> Path:
+def _download_path(self, path: PATH_ARGTYPE, categorize: bool) -> Path:
     """
     [INTERNAL] Refines the download path based on user input.
     Appends subdirectories unless a definite file path (with suffix) is given.

@@ -4,7 +4,7 @@ _export.py
 """
 
 from ..utils import Logger
-from ..const import CSV_COLUMNS
+from ..const import PATH_ARGTYPE, CSV_COLUMNS
 
 import json
 import pandas as pd
@@ -14,13 +14,13 @@ from pathlib import Path
 logger = Logger()
 
 
-def export(self, path: str):
+def export(self, path: PATH_ARGTYPE):
     """
     Exports the manifest as ProtoDB, JSON, and/or CSV to the specified path.
     This is a dispatcher method.
 
     Args:
-        path (str): A directory or a file path.
+        path (Union[str, Path]): A directory or a file path.
             If a directory, all three formats are exported.
             If a file path, the format is determined by the extension
             (all extensions other than .json and .csv are treated as raw binary

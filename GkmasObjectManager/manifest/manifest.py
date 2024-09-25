@@ -4,9 +4,7 @@ Manifest decryption, exporting, and object downloading.
 """
 
 from ..utils import Logger
-from ..const import DICLIST_IGNORED_FIELDS
-
-from pathlib import Path
+from ..const import PATH_ARGTYPE, DICLIST_IGNORED_FIELDS
 
 
 # The logger would better be a global variable in the
@@ -29,14 +27,14 @@ class GkmasManifest:
         download(
             *criteria: str,
             nworker: int = DEFAULT_DOWNLOAD_NWORKER,
-            path: str = DEFAULT_DOWNLOAD_PATH,
+            path: Union[str, Path] = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
             extract_img: bool = True,
             img_format: str = "png",
             img_resize: Union[None, str, Tuple[int, int]] = None,
         ) -> None:
             Downloads the regex-specified assetbundles/resources to the specified path.
-        export(path: str) -> None:
+        export(path: Union[str, Path]) -> None:
             Exports the manifest as ProtoDB, JSON, and/or CSV to the specified path.
     """
 
@@ -47,14 +45,14 @@ class GkmasManifest:
     from ._download import download
     from ._export import export, _export_protodb, _export_json, _export_csv
 
-    def __init__(self, src: str = None):
+    def __init__(self, src: PATH_ARGTYPE = None):
         """
         Initializes a manifest from the given source.
         Only performs decryption when necessary, and
         leaves protobuf parsing to internal backend.
 
         Args:
-            src (str): Path to the manifest file.
+            src (Union[str, Path]): Path to the manifest file.
                 Can be the path to an encrypted octocache
                 (usually named 'octocacheevai') or a decrypted protobuf.
                 If None, an empty manifest is created (used for manifest from diff;

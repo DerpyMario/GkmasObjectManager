@@ -5,22 +5,22 @@ _download.py
 
 from ..utils import ConcurrentDownloader
 from ..const import (
-    DEFAULT_DOWNLOAD_NWORKER,
-    DEFAULT_DOWNLOAD_PATH,
-    IMG_RESIZE_ARGTYPE,
     ALL_ASSETBUNDLES,
     ALL_RESOURCES,
+    PATH_ARGTYPE,
+    IMG_RESIZE_ARGTYPE,
+    DEFAULT_DOWNLOAD_PATH,
+    DEFAULT_DOWNLOAD_NWORKER,
 )
 
 import re
-from pathlib import Path
 
 
 def download(
     self,
     *criteria: str,
     nworker: int = DEFAULT_DOWNLOAD_NWORKER,
-    path: str = DEFAULT_DOWNLOAD_PATH,
+    path: PATH_ARGTYPE = DEFAULT_DOWNLOAD_PATH,
     categorize: bool = True,
     extract_img: bool = True,
     img_format: str = "png",
@@ -34,7 +34,7 @@ def download(
             Allowed special tokens are const.ALL_ASSETBUNDLES and const.ALL_RESOURCES.
         nworker (int) = DEFAULT_DOWNLOAD_NWORKER: Number of concurrent download workers.
             Defaults to multiprocessing.cpu_count().
-        path (str) = DEFAULT_DOWNLOAD_PATH: A directory to which the objects are downloaded.
+        path (Union[str, Path]) = DEFAULT_DOWNLOAD_PATH: A directory to which the objects are downloaded.
             *WARNING: Behavior is undefined if the path points to an definite file (with extension).*
         categorize (bool) = True: Whether to categorize the downloaded objects into subdirectories.
             If False, all objects are downloaded to the specified 'path' in a flat structure.

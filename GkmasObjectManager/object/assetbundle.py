@@ -4,12 +4,15 @@ Unity asset bundle downloading, deobfuscation, and media extraction.
 """
 
 from ..utils import Logger
-from ..const import DEFAULT_DOWNLOAD_PATH, IMG_RESIZE_ARGTYPE, UNITY_SIGNATURE
+from ..const import (
+    PATH_ARGTYPE,
+    IMG_RESIZE_ARGTYPE,
+    DEFAULT_DOWNLOAD_PATH,
+    UNITY_SIGNATURE,
+)
 
 from .resource import GkmasResource
 from .obfuscate import GkmasDeobfuscator
-
-from pathlib import Path
 
 
 logger = Logger()
@@ -26,7 +29,7 @@ class GkmasAssetBundle(GkmasResource):
 
     Methods:
         download(
-            path: str = DEFAULT_DOWNLOAD_PATH,
+            path: Union[str, Path] = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
             extract_img: bool = True,
             img_format: str = "png",
@@ -59,7 +62,7 @@ class GkmasAssetBundle(GkmasResource):
 
     def download(
         self,
-        path: str = DEFAULT_DOWNLOAD_PATH,
+        path: PATH_ARGTYPE = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
         img_format: str = "png",
@@ -69,7 +72,7 @@ class GkmasAssetBundle(GkmasResource):
         Downloads and deobfuscates the assetbundle to the specified path.
 
         Args:
-            path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
+            path (Union[str, Path]) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the assetbundle name.
             categorize (bool) = True: Whether to put the downloaded object into subdirectories.
                 If False, the object is directly downloaded to the specified 'path'.
@@ -91,13 +94,13 @@ class GkmasAssetBundle(GkmasResource):
 
         cipher = self._download_bytes()
 
-        if cipher[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
+        if cipher.startswith(UNITY_SIGNATURE):
             self._export_img(path, cipher, extract_img, img_format, img_resize)
             logger.success(f"{self._idname} downloaded")
         else:
             deobfuscator = GkmasDeobfuscator(self.name.replace(".unity3d", ""))
             plain = deobfuscator.deobfuscate(cipher)
-            if plain[: len(UNITY_SIGNATURE)] == UNITY_SIGNATURE:
+            if plain.startswith(UNITY_SIGNATURE):
                 self._export_img(path, plain, extract_img, img_format, img_resize)
                 logger.success(f"{self._idname} downloaded and deobfuscated")
             else:

@@ -4,9 +4,11 @@ General-purpose resource downloading.
 """
 
 from ..utils import Logger
-from ..const import DEFAULT_DOWNLOAD_PATH, IMG_RESIZE_ARGTYPE
-
-from pathlib import Path
+from ..const import (
+    PATH_ARGTYPE,
+    IMG_RESIZE_ARGTYPE,
+    DEFAULT_DOWNLOAD_PATH,
+)
 
 
 logger = Logger()
@@ -27,7 +29,7 @@ class GkmasResource:
 
     Methods:
         download(
-            path: str = DEFAULT_DOWNLOAD_PATH,
+            path: Union[str, Path] = DEFAULT_DOWNLOAD_PATH,
             categorize: bool = True,
         ) -> None:
             Downloads the resource to the specified path.
@@ -58,7 +60,7 @@ class GkmasResource:
 
     def download(
         self,
-        path: str = DEFAULT_DOWNLOAD_PATH,
+        path: PATH_ARGTYPE = DEFAULT_DOWNLOAD_PATH,
         categorize: bool = True,
         extract_img: bool = True,
         img_format: str = "png",
@@ -68,7 +70,7 @@ class GkmasResource:
         Downloads the resource to the specified path.
 
         Args:
-            path (str) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
+            path (Union[str, Path]) = DEFAULT_DOWNLOAD_PATH: A directory or a file path.
                 If a directory, subdirectories are auto-determined based on the resource name.
             categorize (bool) = True: Whether to put the downloaded object into subdirectories.
                 If False, the object is directly downloaded to the specified 'path'.
