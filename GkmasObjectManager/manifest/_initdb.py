@@ -17,9 +17,8 @@ from .crypt import AESCBCDecryptor
 from .octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
 
-import json
 import requests
-from google.protobuf.json_format import MessageToJson
+from google.protobuf.json_format import MessageToDict, ParseDict
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -63,12 +62,10 @@ def _parse_raw(self, raw: bytes):
     """
     protodb = OctoDB()
     protodb.ParseFromString(raw)
-    self.raw = raw
     self.revision = protodb.revision
-    jdict = json.loads(MessageToJson(protodb))
-    jdict["assetBundleList"] = sorted(jdict["assetBundleList"], key=lambda x: x["id"])
-    jdict["resourceList"] = sorted(jdict["resourceList"], key=lambda x: x["id"])
-    self._parse_jdict(jdict)
+    # Not moved to _parse_jdict(), since manifest from diff
+    # (__sub__ magic method) manually records revision before calling it.
+    self._parse_jdict(MessageToDict(protodb))
 
 
 def _parse_jdict(self, jdict: dict):
@@ -84,7 +81,10 @@ def _parse_jdict(self, jdict: dict):
 
     Documentation for Diclist can be found in utils.py.
     """
+    jdict["assetBundleList"] = sorted(jdict["assetBundleList"], key=lambda x: x["id"])
+    jdict["resourceList"] = sorted(jdict["resourceList"], key=lambda x: x["id"])
     self.jdict = jdict
+    self.raw = ParseDict(jdict, OctoDB()).SerializeToString()
     self._abl = Diclist(self.jdict["assetBundleList"])
     self._resl = Diclist(self.jdict["resourceList"])
     self.abs = [GkmasAssetBundle(ab) for ab in self._abl]
