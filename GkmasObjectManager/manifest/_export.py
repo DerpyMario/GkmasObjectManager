@@ -62,7 +62,7 @@ def _export_json(self, path: Path):
     [INTERNAL] Writes JSON-serialized dictionary into the specified path.
     """
     try:
-        path.write_text(json.dumps(self.jdict, sort_keys=True, indent=4))
+        path.write_text(json.dumps(self.jdict, indent=4))
         logger.success(f"JSON has been written into {path}")
     except:
         logger.warning(f"Failed to write JSON into {path}")

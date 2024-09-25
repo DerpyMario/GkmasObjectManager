@@ -65,7 +65,10 @@ def _parse_raw(self, raw: bytes):
     protodb.ParseFromString(raw)
     self.raw = raw
     self.revision = protodb.revision
-    self._parse_jdict(json.loads(MessageToJson(protodb)))
+    jdict = json.loads(MessageToJson(protodb))
+    jdict["assetBundleList"] = sorted(jdict["assetBundleList"], key=lambda x: x["id"])
+    jdict["resourceList"] = sorted(jdict["resourceList"], key=lambda x: x["id"])
+    self._parse_jdict(jdict)
 
 
 def _parse_jdict(self, jdict: dict):
