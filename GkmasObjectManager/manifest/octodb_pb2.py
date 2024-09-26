@@ -32,7 +32,7 @@ _serialized_bytes = b"".join(
         b"\x12\x0f\x0a\x07tagname\x18\x03 \x03\x28\x09",
         b"\x12\x1b\x0a\x0cresourceList\x18\x04 \x03\x28\x0b\x32\x05.Data",
         b"\x12\x11\x0a\x09urlFormat\x18\x05 \x01\x28\x09",
-        b"\x22\xad\x02\x0a\x04Data",
+        b"\x22\xae\x02\x0a\x04Data",
         b"\x12\x0a\x0a\x02id\x18\x01 \x01\x28\x05",
         b"\x12\x10\x0a\x08filepath\x18\x02 \x01\x28\x09",
         b"\x12\x0c\x0a\x04name\x18\x03 \x01\x28\x09",
@@ -40,7 +40,7 @@ _serialized_bytes = b"".join(
         b"\x12\x0b\x0a\x03crc\x18\x05 \x01\x28\x0d",
         b"\x12\x10\x0a\x08priority\x18\x06 \x01\x28\x05",
         b"\x12\x0d\x0a\x05tagid\x18\x07 \x03\x28\x05",
-        b"\x12\x13\x0a\x0bdependencie\x18\x08 \x03\x28\x05",
+        b"\x12\x14\x0a\x0cdependencies\x18\x08 \x03\x28\x05",
         b"\x12\x1a\x0a\x05state\x18\x09 \x01\x28\x0e\x32\x0b.Data.State",
         b"\x12\x0b\x0a\x03md5\x18\x0a \x01\x28\x09",
         b"\x12\x12\x0a\x0aobjectName\x18\x0b \x01\x28\x09",
@@ -66,8 +66,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _DATABASE._serialized_start = 16
     _DATABASE._serialized_end = 141
     _DATA._serialized_start = 144
-    _DATA._serialized_end = 445
-    _DATA_STATE._serialized_start = 383
-    _DATA_STATE._serialized_end = 445
+    _DATA._serialized_end = 446
+    _DATA_STATE._serialized_start = 384
+    _DATA_STATE._serialized_end = 446
 
 # @@protoc_insertion_point(module_scope)
