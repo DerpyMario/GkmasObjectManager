@@ -18,9 +18,9 @@ from .octodb_pb2 import Database as OctoDB
 from ..object import GkmasAssetBundle, GkmasResource
 
 import requests
-from google.protobuf.json_format import MessageToDict, ParseDict
 from pathlib import Path
 from urllib.parse import urljoin
+from google.protobuf.json_format import MessageToDict
 
 
 logger = Logger()
@@ -84,7 +84,6 @@ def _parse_jdict(self, jdict: dict):
     jdict["assetBundleList"] = sorted(jdict["assetBundleList"], key=lambda x: x["id"])
     jdict["resourceList"] = sorted(jdict["resourceList"], key=lambda x: x["id"])
     self.jdict = jdict
-    self.raw = ParseDict(jdict, OctoDB()).SerializeToString()
     self._abl = Diclist(self.jdict["assetBundleList"])
     self._resl = Diclist(self.jdict["resourceList"])
     self.abs = [GkmasAssetBundle(ab) for ab in self._abl]

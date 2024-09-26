@@ -60,7 +60,6 @@ class GkmasManifest:
         """
 
         if not src:  # empty constructor
-            self.raw = None
             self.revision = None
             return
 

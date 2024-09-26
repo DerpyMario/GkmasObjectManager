@@ -24,7 +24,9 @@ class Diclist(list):
     """
 
     def __init__(self, diclist: list):
-        super().__init__(diclist)
+        super().__init__(diclist.copy())
+        # such that all subsequent operations (especially rip_field)
+        # are non-destructive to the original list
 
     def __sub__(self, other: "Diclist") -> "Diclist":
         return Diclist([item for item in self if item not in other])

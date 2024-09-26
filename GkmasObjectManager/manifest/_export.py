@@ -6,9 +6,12 @@ _export.py
 from ..utils import Logger
 from ..const import PATH_ARGTYPE, CSV_COLUMNS
 
+from .octodb_pb2 import Database as OctoDB
+
 import json
 import pandas as pd
 from pathlib import Path
+from google.protobuf.json_format import ParseDict
 
 
 logger = Logger()
@@ -51,7 +54,7 @@ def _export_protodb(self, path: Path):
     [INTERNAL] Writes raw protobuf bytes into the specified path.
     """
     try:
-        path.write_bytes(self.raw)
+        path.write_bytes(ParseDict(self.jdict, OctoDB()).SerializeToString())
         logger.success(f"ProtoDB has been written into {path}")
     except:
         logger.warning(f"Failed to write ProtoDB into {path}")
