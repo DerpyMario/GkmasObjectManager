@@ -43,7 +43,7 @@ class GkmasManifest:
     # resolution errors. Also, import * is prohibited unless importing from a module.
     from ._initdb import _online_init, _offline_init, _parse_raw, _parse_jdict
     from ._download import download
-    from ._export import export, _export_protodb, _export_json, _export_csv
+    from ._export import export, _export_pdb, _export_json, _export_csv
 
     def __init__(self, src: PATH_ARGTYPE = None):
         """

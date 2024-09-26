@@ -6,7 +6,7 @@ _export.py
 from ..utils import Logger
 from ..const import PATH_ARGTYPE, CSV_COLUMNS
 
-from .octodb_pb2 import Database as OctoDB
+from .octodb_pb2 import Database as ProtoDB
 
 import json
 import pandas as pd
@@ -35,26 +35,28 @@ def export(self, path: PATH_ARGTYPE):
     if path.suffix == "":
         # used to be path.is_dir(), but it also returns False for non-existent dirs
         path.mkdir(parents=True, exist_ok=True)
-        self._export_protodb(path / f"manifest_v{self.revision}")
+        self._export_pdb(path / f"manifest_v{self.revision}.pdb")
         self._export_json(path / f"manifest_v{self.revision}.json")
         self._export_csv(path / f"manifest_v{self.revision}.csv")
 
     else:
         path.parent.mkdir(parents=True, exist_ok=True)
-        if path.suffix == ".json":
+        if path.suffix == ".pdb":
+            self._export_pdb(path)
+        elif path.suffix == ".json":
             self._export_json(path)
         elif path.suffix == ".csv":
             self._export_csv(path)
         else:
-            self._export_protodb(path)
+            logger.warning("Unrecognized file extension, abort")
 
 
-def _export_protodb(self, path: Path):
+def _export_pdb(self, path: Path):
     """
     [INTERNAL] Writes raw protobuf bytes into the specified path.
     """
     try:
-        path.write_bytes(ParseDict(self.jdict, OctoDB()).SerializeToString())
+        path.write_bytes(ParseDict(self.jdict, ProtoDB()).SerializeToString())
         logger.success(f"ProtoDB has been written into {path}")
     except:
         logger.warning(f"Failed to write ProtoDB into {path}")

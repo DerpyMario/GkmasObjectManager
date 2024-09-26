@@ -14,7 +14,7 @@ from ..const import (
 )
 
 from .crypt import AESCBCDecryptor
-from .octodb_pb2 import Database as OctoDB
+from .octodb_pb2 import Database as ProtoDB
 from ..object import GkmasAssetBundle, GkmasResource
 
 import requests
@@ -60,12 +60,12 @@ def _parse_raw(self, raw: bytes):
     [INTERNAL] Records raw protobuf bytes, converts to JSON,
     and calls "secondary backend" JSON parser.
     """
-    protodb = OctoDB()
-    protodb.ParseFromString(raw)
-    self.revision = protodb.revision
+    pdb = ProtoDB()
+    pdb.ParseFromString(raw)
+    self.revision = pdb.revision
     # Not moved to _parse_jdict(), since manifest from diff
     # (__sub__ magic method) manually records revision before calling it.
-    self._parse_jdict(MessageToDict(protodb))
+    self._parse_jdict(MessageToDict(pdb))
 
 
 def _parse_jdict(self, jdict: dict):
